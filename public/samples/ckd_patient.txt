@@ -1,0 +1,1 @@
+Patient is a 58-year-old male admitted for routine checkup. Height: 178 cm, Weight: 95 kg. History of hypertension for 8 years. Physical exam: BP 148/92 mmHg, HR 76 bpm. Lab results: Serum Cr 1.2 mg/dL, K 4.2 mmol/L, Hemoglobin 112 g/L. Fasting glucose 6.8 mmol/L. Urinalysis: protein(+). Echocardiography: LVEDD 52 mm, LVESD 34 mm.
