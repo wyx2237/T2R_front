@@ -54,11 +54,41 @@ mock.onGet(/\/api\/metrics\/\w+$/).reply((config) => {
 // Metrics — delete
 mock.onDelete(/\/api\/metrics\/\w+$/).reply(() => ok({ success: true }))
 
-// Metrics — create (placeholder)
-mock.onPost('/api/metrics').reply(() => ok({ success: true }))
+// Metrics — create
+mock.onPost('/api/metrics').reply((config) => {
+  const body = JSON.parse(config.data)
+  const newId = `metric_${Date.now()}`
+  const newMetric = {
+    id: newId,
+    code: body.code || `GEN-${String(metrics.length + 1).padStart(3, '0')}`,
+    name: body.name || body.question || 'Untitled Metric',
+    description: body.description || body.question || '',
+    department: body.department || 'General',
+    reference: body.reference || '',
+    inputs: [],
+    output: {
+      output_name: 'result',
+      output_desc: 'Computation result',
+      output_type: 'float',
+    },
+    steps: [],
+    executableCode: `# Generated from: ${body.question || 'manual creation'}\n# Formula: ${body.formula || 'N/A'}\n\ndef solve(*args, **kwargs):\n    # TODO: implement\n    pass\n`,
+  }
+  metrics.push(newMetric)
+  return ok({ metricId: newId })
+})
 
-// Metrics — update (placeholder)
-mock.onPut(/\/api\/metrics\/\w+$/).reply(() => ok({ success: true }))
+// Metrics — update
+mock.onPut(/\/api\/metrics\/\w+$/).reply((config) => {
+  const id = config.url!.split('/').pop()
+  const body = JSON.parse(config.data)
+  const idx = metrics.findIndex((m) => m.id === id)
+  if (idx !== -1) {
+    metrics[idx] = { ...metrics[idx], ...body }
+    return ok({ metricId: id })
+  }
+  return [404, { message: 'Metric not found', data: null, status_code: 404 }]
+})
 
 // Compute — upload case file
 mock.onPost('/api/compute/sessions').reply(() =>

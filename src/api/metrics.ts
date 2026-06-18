@@ -25,7 +25,17 @@ export function deleteMetric(id: string): Promise<void> {
   return client.delete(`/api/metrics/${id}`)
 }
 
-export function createMetric(data: { question: string; formula: string }): Promise<{ metricId: string }> {
+export interface CreateMetricData {
+  question: string
+  formula?: string
+  name?: string
+  code?: string
+  department?: string
+  reference?: string
+  description?: string
+}
+
+export function createMetric(data: CreateMetricData): Promise<{ metricId: string }> {
   return client.post('/api/metrics', data).then((res) => res.data)
 }
 
