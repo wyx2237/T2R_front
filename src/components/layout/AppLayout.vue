@@ -25,7 +25,7 @@ const mainStyle = computed(() => ({
 <style scoped>
 .app-layout {
   min-height: 100vh;
-  background: #F5F7FA;
+  background: var(--claude-warm-bg);
 }
 
 .main-content {

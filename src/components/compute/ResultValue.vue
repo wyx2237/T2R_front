@@ -35,7 +35,8 @@ const statusColor = computed(() => {
   align-items: center;
   padding: 24px;
   border-radius: 8px;
-  background: #FAFAFA;
+  background: #fff;
+  border: 1px solid var(--claude-border);
 }
 
 .value-main {

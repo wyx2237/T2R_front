@@ -24,8 +24,8 @@ const highlighted = computed(() => {
 
 <style scoped>
 .code-block {
-  background: #F6F8FA;
-  border: 1px solid #E8E8E8;
+  background: var(--claude-warm-bg);
+  border: 1px solid var(--claude-border);
   border-radius: 6px;
   padding: 12px 16px;
   font-size: 13px;

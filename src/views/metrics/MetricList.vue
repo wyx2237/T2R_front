@@ -206,8 +206,9 @@ onMounted(() => {
 
 .page-header h2 {
   margin: 0;
+  font-family: var(--font-display);
   font-size: 20px;
-  color: #303133;
+  color: var(--claude-text-dark);
 }
 
 .filter-card {
@@ -230,7 +231,8 @@ onMounted(() => {
 }
 
 .metric-name {
-  color: #409EFF;
+  font-family: var(--font-display);
+  color: #D97757;
   cursor: pointer;
 }
 

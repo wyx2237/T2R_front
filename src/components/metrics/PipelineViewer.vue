@@ -150,7 +150,7 @@ watch(() => props.steps, () => nextTick(checkLayout))
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #409EFF;
+  background: #D97757;
   color: #fff;
   display: flex;
   align-items: center;

@@ -58,8 +58,8 @@ const statusTagType = computed(() => {
 
 <style scoped>
 .metric-result-card {
-  background: #fff;
-  border: 1px solid #E8E8E8;
+  background: var(--claude-warm-card);
+  border: 1px solid var(--claude-border);
   border-radius: 8px;
   padding: 20px;
   margin-bottom: 16px;

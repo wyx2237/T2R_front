@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import type { ExtractedParam } from '@/types/compute'
 import HighlightedText from './HighlightedText.vue'
 import { useScrollTo } from '@/composables/useScrollTo'
@@ -15,7 +14,6 @@ const emit = defineEmits<{
 }>()
 
 const { scrollToId, scrollToElement } = useScrollTo()
-const jumpParam = ref('')
 
 function handleParamClick(paramName: string) {
   // Scroll to table row
@@ -25,12 +23,6 @@ function handleParamClick(paramName: string) {
 function handleRowClick(paramName: string) {
   // Scroll to mark in text
   scrollToElement(`mark[data-param="${paramName}"]`)
-}
-
-function handleJump() {
-  if (jumpParam.value) {
-    scrollToElement(`mark[data-param="${jumpParam.value}"]`)
-  }
 }
 
 function confidenceColor(conf: number): string {
@@ -57,15 +49,15 @@ function confidenceColor(conf: number): string {
         class="detail-table"
         @row-click="(row: ExtractedParam) => handleRowClick(row.name)"
       >
-        <el-table-column prop="name" label="Parameter Name" min-width="140">
+        <el-table-column prop="name" label="Parameter Name" width="130">
           <template #default="{ row }">
             <span :id="`param-row-${row.name}`" class="table-param-name">
               {{ row.name }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="rawValue" label="Raw Value" width="100" />
-        <el-table-column label="Normalized" width="120">
+        <el-table-column prop="rawValue" label="Raw Value" min-width="120" />
+        <el-table-column label="Normalized" width="130">
           <template #default="{ row }">
             {{ row.normalizedValue }}
           </template>
@@ -90,37 +82,18 @@ function confidenceColor(conf: number): string {
 
       <div class="extraction-footer">
         <span class="param-count">{{ params.length }} parameters extracted</span>
-        <div class="jump-control">
-          <el-select
-            v-model="jumpParam"
-            placeholder="Jump to Param"
-            size="small"
-            clearable
-            style="width: 180px"
-            @change="handleJump"
-          >
-            <el-option
-              v-for="param in params"
-              :key="param.name"
-              :label="param.name"
-              :value="param.name"
-            />
-          </el-select>
-        </div>
       </div>
     </div>
 </template>
 
 <style scoped>
-.extraction-highlight {}
-
 .detail-table {
   margin-top: 12px;
   cursor: pointer;
 }
 
 .table-param-name {
-  color: #409EFF;
+  color: #D97757;
   font-weight: 500;
 }
 
@@ -146,7 +119,7 @@ function confidenceColor(conf: number): string {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #E8E8E8;
+  background: var(--claude-border);
   display: inline-block;
 }
 
@@ -154,8 +127,4 @@ function confidenceColor(conf: number): string {
   background: #52C41A;
 }
 
-.jump-control {
-  display: flex;
-  gap: 8px;
-}
 </style>

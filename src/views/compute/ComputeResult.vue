@@ -23,6 +23,7 @@ const toolDrawerVisible = ref(false)
 const selectedTool = ref<AtomicTool | null>(null)
 
 const computing = ref(true)
+const computationDone = ref(false)
 const computeError = ref('')
 
 const singleResult = computed(() => computeStore.results[0] ?? null)
@@ -45,6 +46,11 @@ function handleToolClick(toolId: string) {
 function handleReSelect() {
   computeStore.backToSelect()
   router.push(`/compute/${computeStore.sessionId}/select`)
+}
+
+function handleReset() {
+  computeStore.resetToUpload()
+  router.push('/compute/upload')
 }
 
 async function handleExport() {
@@ -89,7 +95,7 @@ onMounted(async () => {
   try {
     await new Promise((resolve) => setTimeout(resolve, 3000))
     await computeStore.executeCompute()
-    computing.value = false
+    computationDone.value = true // manual dismiss
   } catch {
     computeError.value = 'Computation failed. Please go back and try again.'
     computing.value = false
@@ -123,6 +129,14 @@ onMounted(async () => {
             <span class="step-label">{{ step.label }}</span>
           </div>
         </div>
+        <el-button
+          v-if="computationDone"
+          type="primary"
+          class="dismiss-btn"
+          @click="computing = false"
+        >
+          View Results
+        </el-button>
       </div>
     </el-card>
 
@@ -139,7 +153,7 @@ onMounted(async () => {
     <el-card v-if="singleResult" class="region-card">
       <template #header>
         <div class="region-header">
-          <el-icon :size="18"><TrendCharts /></el-icon>
+          <el-icon :size="22"><TrendCharts /></el-icon>
           <span>Summary</span>
         </div>
       </template>
@@ -176,6 +190,10 @@ onMounted(async () => {
       </div>
 
       <div class="summary-actions">
+        <el-button @click="handleReset">
+          <el-icon><Refresh /></el-icon>
+          Reset
+        </el-button>
         <el-button @click="handleReSelect">
           <el-icon><RefreshLeft /></el-icon>
           Re-select Metric
@@ -195,7 +213,7 @@ onMounted(async () => {
     <el-card v-if="!computing" class="region-card">
       <template #header>
         <div class="region-header">
-          <el-icon :size="18"><Document /></el-icon>
+          <el-icon :size="22"><Document /></el-icon>
           <span>Parameter Extraction</span>
           <el-button text size="small" style="margin-left: auto" @click="extractionExpanded = !extractionExpanded">
             {{ extractionExpanded ? 'Collapse' : 'Expand' }}
@@ -213,7 +231,7 @@ onMounted(async () => {
     <el-card v-if="singleResult" class="region-card">
       <template #header>
         <div class="region-header">
-          <el-icon :size="18"><DataAnalysis /></el-icon>
+          <el-icon :size="22"><DataAnalysis /></el-icon>
           <span>Metric Result</span>
           <el-button text size="small" style="margin-left: auto" @click="metricsExpanded = !metricsExpanded">
             {{ metricsExpanded ? 'Collapse' : 'Expand' }}
@@ -279,14 +297,10 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  color: #303133;
-  margin-bottom: 16px;
-}
-
-.region-header:not(:has(+ *)) {
-  margin-bottom: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--claude-orange);
 }
 
 /* Single summary */
@@ -303,14 +317,16 @@ onMounted(async () => {
 }
 
 .summary-label {
-  font-size: 13px;
-  color: #909399;
-  min-width: 60px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--claude-text-dark);
+  min-width: 70px;
 }
 
 .summary-value {
   font-size: 14px;
-  color: #303133;
+  color: var(--claude-text-dark);
   font-weight: 500;
 }
 
@@ -333,7 +349,7 @@ onMounted(async () => {
 
 .result-unit {
   font-size: 14px;
-  color: #909399;
+  color: var(--claude-text-light);
   margin-left: 4px;
 }
 
@@ -375,14 +391,14 @@ onMounted(async () => {
 .drawer-section h4 {
   margin: 0 0 8px 0;
   font-size: 14px;
-  color: #303133;
+  color: var(--claude-text-dark);
 }
 
 .drawer-section p,
 .drawer-section ol {
   margin: 0;
   font-size: 13px;
-  color: #606266;
+  color: var(--claude-text-mid);
   line-height: 1.6;
 }
 
@@ -416,8 +432,8 @@ onMounted(async () => {
   position: absolute;
   width: 80px;
   height: 80px;
-  border: 4px solid #E8E8E8;
-  border-top-color: #409EFF;
+  border: 4px solid var(--claude-border);
+  border-top-color: #D97757;
   border-radius: 50%;
   animation: ring-spin 1s linear infinite;
 }
@@ -427,19 +443,19 @@ onMounted(async () => {
 }
 
 .ring-icon {
-  color: #409EFF;
+  color: #D97757;
 }
 
 .loading-title {
   font-size: 20px;
   font-weight: 600;
-  color: #303133;
+  color: var(--claude-text-dark);
   margin: 0 0 8px 0;
 }
 
 .loading-subtitle {
   font-size: 14px;
-  color: #909399;
+  color: var(--claude-text-light);
   margin: 0 0 32px 0;
 }
 
@@ -451,8 +467,8 @@ onMounted(async () => {
 
 .loading-step {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-start;
+  gap: 14px;
   position: relative;
 }
 
@@ -460,16 +476,18 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 24px;
+  width: 28px;
   flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .step-dot {
-  width: 10px;
-  height: 10px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  background: #409EFF;
+  background: #D97757;
   animation: dot-pulse 1.5s ease-in-out infinite;
+  flex-shrink: 0;
 }
 
 .loading-step:nth-child(2) .step-dot { animation-delay: 0.3s; }
@@ -484,13 +502,18 @@ onMounted(async () => {
 .step-line {
   width: 2px;
   height: 28px;
-  background: #E8E8E8;
+  background: var(--claude-border);
 }
 
 .step-label {
   font-size: 14px;
-  color: #606266;
-  padding: 12px 0;
+  color: var(--claude-text-mid);
+  padding: 0 0 16px 0;
+  line-height: 1.4;
+}
+
+.dismiss-btn {
+  margin-top: 24px;
 }
 
 /* Error */
@@ -508,7 +531,7 @@ onMounted(async () => {
 
 .error-message {
   font-size: 15px;
-  color: #606266;
+  color: var(--claude-text-mid);
   margin: 0;
 }
 </style>

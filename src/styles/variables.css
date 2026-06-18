@@ -1,11 +1,38 @@
 :root {
-  --sidebar-bg: #1E1F2C;
+  /* ── Claude-Inspired Color Palette ── */
+  --claude-orange: #D97757;
+  --claude-dark: #1A1D23;
+  --claude-warm-header: #FCFAF7;
+  --claude-warm-bg: #F2EDE6;
+  --claude-warm-card: #FEFCF8;
+  --claude-border: #E8E0D8;
+  --claude-text-dark: #2C1810;
+  --claude-text-mid: #5C4A3E;
+  --claude-text-light: #8C7A6E;
+  --claude-sidebar-bg: #E5D8C2;
+  --claude-sidebar-hover: #D6C8AE;
+  --claude-sidebar-text: #3C2A1E;
+
+  /* ── Fonts ── */
+  --font-display: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* ── Layout Dimensions ── */
+  --sidebar-bg: var(--claude-sidebar-bg);
   --sidebar-width: 220px;
   --sidebar-collapsed-width: 64px;
   --header-height: 56px;
-  --content-bg: #F5F6FA;
+  --content-bg: var(--claude-warm-bg);
   --content-max-width: 1200px;
-  --card-bg: #FFFFFF;
+  --card-bg: var(--claude-warm-card);
+
+  /* ── Element Plus Primary Color Override (Claude Orange) ── */
+  --el-color-primary: #D97757;
+  --el-color-primary-light-3: #E8A080;
+  --el-color-primary-light-5: #F0C0AA;
+  --el-color-primary-light-7: #F5D5C5;
+  --el-color-primary-light-8: #F8E3D7;
+  --el-color-primary-light-9: #FCF0EA;
+  --el-color-primary-dark-2: #C05E3E;
 }
 
 @keyframes flash-highlight {

@@ -102,21 +102,22 @@ const modules = [
 }
 
 .hero-title {
+  font-family: var(--font-display);
   font-size: 32px;
   font-weight: 700;
-  color: #303133;
+  color: var(--claude-text-dark);
   margin: 0 0 8px;
 }
 
 .hero-subtitle {
   font-size: 16px;
-  color: #606266;
+  color: var(--claude-text-mid);
   margin: 0 0 12px;
 }
 
 .hero-desc {
   font-size: 14px;
-  color: #909399;
+  color: var(--claude-text-light);
   margin: 0 0 32px;
 }
 
@@ -153,15 +154,16 @@ const modules = [
   width: 52px;
   height: 52px;
   border-radius: 12px;
-  background: #ECF5FF;
+  background: var(--el-color-primary-light-9);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #409EFF;
+  color: var(--claude-orange);
   flex-shrink: 0;
 }
 
 .module-title {
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 600;
   color: #303133;
@@ -169,7 +171,7 @@ const modules = [
 
 .module-subtitle {
   font-size: 12px;
-  color: #909399;
+  color: var(--claude-text-light);
   margin-top: 2px;
 }
 

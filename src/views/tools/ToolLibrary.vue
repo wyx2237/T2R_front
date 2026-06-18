@@ -178,14 +178,15 @@ onMounted(async () => {
 
 .page-header h2 {
   margin: 0;
+  font-family: var(--font-display);
   font-size: 22px;
   font-weight: 700;
-  color: #303133;
+  color: var(--claude-text-dark);
 }
 
 .template-count {
   font-size: 14px;
-  color: #909399;
+  color: var(--claude-text-light);
 }
 
 /* Cards */
@@ -196,7 +197,7 @@ onMounted(async () => {
 }
 
 .tool-card {
-  border-left: 5px solid #409EFF;
+  border-left: 5px solid #D97757;
   border-radius: 8px;
   cursor: pointer;
   transition: box-shadow 0.25s, transform 0.25s;
@@ -224,21 +225,22 @@ onMounted(async () => {
 }
 
 .tool-name {
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 700;
-  color: #1F2329;
+  color: var(--claude-text-dark);
 }
 
 .expand-hint {
   font-size: 12px;
-  color: #909399;
+  color: var(--claude-text-light);
   font-weight: 500;
   user-select: none;
 }
 
 .tool-full-desc {
   font-size: 14px;
-  color: #555A62;
+  color: var(--claude-text-mid);
   line-height: 1.7;
   margin: 0;
   display: -webkit-box;
@@ -278,10 +280,10 @@ onMounted(async () => {
   display: inline-block;
   font-size: 11px;
   font-weight: 600;
-  color: #909399;
+  color: var(--claude-text-light);
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  background: #F5F5F5;
+  background: var(--claude-warm-bg);
   padding: 2px 8px;
   border-radius: 4px;
   flex-shrink: 0;
@@ -289,12 +291,12 @@ onMounted(async () => {
 
 .meta-text {
   font-size: 13px;
-  color: #555A62;
+  color: var(--claude-text-mid);
   line-height: 1.6;
 }
 
 .no-libs {
-  color: #C0C4CC;
+  color: var(--claude-text-light);
 }
 
 /* Expanded detail */
@@ -318,8 +320,8 @@ onMounted(async () => {
 }
 
 .badge-flow {
-  background: #ECF5FF;
-  color: #409EFF;
+  background: var(--el-color-primary-light-9);
+  color: #D97757;
 }
 
 .badge-exec {
@@ -334,7 +336,7 @@ onMounted(async () => {
 
 .detail-section h5 {
   font-size: 14px;
-  color: #303133;
+  color: var(--claude-text-dark);
   margin: 0 0 8px 0;
   font-weight: 600;
 }
@@ -356,7 +358,7 @@ onMounted(async () => {
   margin: 0;
   padding-left: 22px;
   font-size: 13px;
-  color: #555A62;
+  color: var(--claude-text-mid);
   line-height: 2;
 }
 
@@ -370,7 +372,7 @@ onMounted(async () => {
 
 .example-name {
   font-size: 14px;
-  color: #1F2329;
+  color: var(--claude-text-dark);
   margin: 0 0 14px 0;
   font-weight: 600;
 }
@@ -384,7 +386,7 @@ onMounted(async () => {
 
 .inline-params {
   font-size: 13px;
-  color: #555A62;
+  color: var(--claude-text-mid);
   background: #F8F9FA;
   padding: 3px 10px;
   border-radius: 4px;

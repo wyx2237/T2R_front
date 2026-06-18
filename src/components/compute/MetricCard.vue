@@ -44,13 +44,13 @@ function handleClick() {
 <style scoped>
 .metric-card {
   cursor: pointer;
-  border-left: 4px solid #E8E8E8;
+  border-left: 4px solid var(--claude-border);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .metric-card.selected {
-  border-color: #409EFF;
-  background: #F0F7FF;
+  border-color: #D97757;
+  background: var(--el-color-primary-light-9);
 }
 
 .card-body {

@@ -29,7 +29,7 @@ const steps = [
           </span>
           <span class="step-title">{{ step.title }}</span>
         </div>
-        <span v-if="i < steps.length - 1" class="step-arrow">&rarr;</span>
+        <span v-if="i < steps.length - 1" class="step-arrow">&gt;&gt;&gt;</span>
       </template>
     </div>
   </div>
@@ -64,18 +64,18 @@ const steps = [
 }
 
 .step-card.done {
-  background: #E6F7E6;
-  color: #52C41A;
+  background: var(--claude-sidebar-bg);
+  color: #5C4A3E;
 }
 
 .step-card.current {
-  background: #409EFF;
+  background: #D97757;
   color: #fff;
-  box-shadow: 0 3px 12px rgba(64, 158, 255, 0.35);
+  box-shadow: 0 3px 12px rgba(217, 119, 87, 0.35);
 }
 
 .step-card.pending {
-  background: #F0F0F0;
+  background: var(--claude-warm-bg);
   color: #909399;
 }
 
@@ -93,6 +93,6 @@ const steps = [
 
 .step-card.current + .step-arrow,
 .step-card.done + .step-arrow {
-  color: #409EFF;
+  color: #D97757;
 }
 </style>

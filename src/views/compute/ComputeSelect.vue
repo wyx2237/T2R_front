@@ -109,17 +109,22 @@ if (!computeStore.sessionId) {
 
     <!-- Case Summary -->
     <el-card class="section-card">
-      <el-collapse>
-        <el-collapse-item title="Case Summary">
-          <p class="case-text">{{ computeStore.rawText }}</p>
-        </el-collapse-item>
-      </el-collapse>
+      <template #header>
+        <div class="region-header">
+          <el-icon :size="22"><Document /></el-icon>
+          <span>Case Summary</span>
+        </div>
+      </template>
+      <p class="case-text">{{ computeStore.rawText }}</p>
     </el-card>
 
     <!-- Recommended Metrics -->
     <el-card class="section-card">
       <template #header>
-        <span class="section-title">Recommended Metrics</span>
+        <div class="region-header">
+          <el-icon :size="22"><DataAnalysis /></el-icon>
+          <span>Recommended Metrics</span>
+        </div>
       </template>
 
       <div class="filter-bar">
@@ -171,7 +176,10 @@ if (!computeStore.sessionId) {
     <el-card class="section-card">
       <template #header>
         <div class="browse-header">
-          <span class="section-title">Browse All Metrics</span>
+          <div class="region-header">
+            <el-icon :size="22"><FolderOpened /></el-icon>
+            <span>Browse All Metrics</span>
+          </div>
           <span class="browse-hint">Select any metric from the library. Computation may fail if required parameters are missing from the case.</span>
         </div>
       </template>
@@ -195,7 +203,10 @@ if (!computeStore.sessionId) {
     <!-- Selected Metric Detail -->
     <el-card class="section-card" v-if="selectedMetric">
       <template #header>
-        <span class="section-title">Selected Metric</span>
+        <div class="region-header">
+          <el-icon :size="22"><Select /></el-icon>
+          <span>Selected Metric</span>
+        </div>
       </template>
       <el-descriptions :column="2" border size="small">
         <el-descriptions-item label="Name">{{ selectedMetric.name }}</el-descriptions-item>
@@ -247,15 +258,28 @@ if (!computeStore.sessionId) {
 }
 
 .section-title {
-  font-size: 15px;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--claude-orange);
+}
+
+.region-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--claude-orange);
 }
 
 .case-text {
   font-size: 13px;
-  color: #606266;
+  color: var(--claude-text-dark);
   white-space: pre-wrap;
-  line-height: 1.8;
+  word-break: break-word;
+  line-height: 1.6;
   margin: 0;
 }
 
@@ -286,7 +310,7 @@ if (!computeStore.sessionId) {
   padding: 16px;
   text-align: center;
   font-size: 14px;
-  color: #909399;
+  color: var(--claude-text-light);
 }
 
 .selected-inputs {
@@ -295,7 +319,7 @@ if (!computeStore.sessionId) {
 
 .inputs-label {
   font-size: 14px;
-  color: #303133;
+  color: var(--claude-text-dark);
   font-weight: 600;
 }
 
@@ -312,8 +336,8 @@ if (!computeStore.sessionId) {
   font-size: 12px;
   padding: 2px 8px;
   border-radius: 4px;
-  background: #F5F5F5;
-  color: #909399;
+  background: var(--claude-warm-bg);
+  color: var(--claude-text-light);
 }
 
 .browse-header {
@@ -324,7 +348,7 @@ if (!computeStore.sessionId) {
 
 .browse-hint {
   font-size: 12px;
-  color: #909399;
+  color: var(--claude-text-light);
   font-weight: 400;
 }
 </style>

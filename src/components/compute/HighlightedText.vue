@@ -67,7 +67,7 @@ function handleClick(event: MouseEvent) {
   color: #303133;
   padding: 16px;
   background: #fff;
-  border: 1px solid #E8E8E8;
+  border: 1px solid var(--claude-border);
   border-radius: 6px;
   white-space: pre-wrap;
 }

@@ -112,7 +112,7 @@ function handleToolClick() {
 
 <style scoped>
 .step-node {
-  border: 1px solid #E8E8E8;
+  border: 1px solid var(--claude-border);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -156,8 +156,8 @@ function handleToolClick() {
 .step-number {
   font-size: 13px;
   font-weight: 600;
-  color: #303133;
-  background: #F0F0F0;
+  color: var(--claude-text-dark);
+  background: var(--claude-warm-bg);
   padding: 2px 10px;
   border-radius: 4px;
 }
@@ -179,9 +179,9 @@ function handleToolClick() {
   font-size: 14px;
   color: #303133;
   font-weight: 600;
-  background: #F0F2F5;
+  background: var(--claude-warm-bg);
   padding: 4px 12px 4px 16px;
-  border-left: 3px solid #409EFF;
+  border-left: 3px solid #D97757;
   border-radius: 0 4px 4px 0;
 }
 
@@ -231,7 +231,7 @@ function handleToolClick() {
 }
 
 .input-card:hover {
-  background: #F0F2F5;
+  background: var(--claude-warm-bg);
 }
 
 .input-card-left {
@@ -264,7 +264,7 @@ function handleToolClick() {
   font-size: 14px;
   color: #303133;
   padding: 8px 12px;
-  background: #F6F8FA;
+  background: var(--claude-warm-bg);
   border-radius: 4px;
   font-family: 'KaTeX_Main', 'Times New Roman', serif;
 }

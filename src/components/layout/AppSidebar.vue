@@ -25,9 +25,9 @@ function navigate(path: string) {
   <aside class="app-sidebar" :class="{ collapsed: uiStore.sidebarCollapsed }">
     <el-menu
       :default-active="activeMenu"
-      background-color="#1E1F2C"
-      text-color="#bfcbd9"
-      active-text-color="#409EFF"
+      background-color="#E5D8C2"
+      text-color="#3C2A1E"
+      active-text-color="#D97757"
       :collapse="uiStore.sidebarCollapsed"
       class="sidebar-menu"
       @select="navigate"
@@ -50,7 +50,7 @@ function navigate(path: string) {
       </el-menu-item>
     </el-menu>
     <div class="collapse-btn" @click="uiStore.toggleSidebar()">
-      <el-icon :size="18">
+      <el-icon :size="20">
         <DArrowLeft v-if="!uiStore.sidebarCollapsed" />
         <DArrowRight v-else />
       </el-icon>
@@ -61,7 +61,7 @@ function navigate(path: string) {
 <style scoped>
 .app-sidebar {
   width: 220px;
-  background: #1E1F2C;
+  background: var(--claude-sidebar-bg);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -79,20 +79,75 @@ function navigate(path: string) {
 .sidebar-menu {
   flex: 1;
   border-right: none;
+  padding-top: 8px;
 }
 
+/* ── Menu Item Sizing ── */
+.sidebar-menu :deep(.el-menu-item) {
+  height: 52px;
+  line-height: 52px;
+  padding: 0 20px;
+  margin: 2px 10px;
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: all 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
+  position: relative;
+}
+
+/* ── Icon Size ── */
+.sidebar-menu :deep(.el-menu-item .el-icon) {
+  font-size: 22px;
+  width: 24px;
+  margin-right: 10px;
+}
+
+/* ── Collapsed State: hide all menu items ── */
+.app-sidebar.collapsed :deep(.el-menu-item) {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  overflow: hidden;
+  border: none;
+}
+
+/* ── Active Item ── */
+.sidebar-menu :deep(.el-menu-item.is-active) {
+  background-color: var(--el-color-primary-light-9) !important;
+  border-left: 3px solid var(--claude-orange);
+  padding-left: 17px; /* 20px - 3px border */
+}
+
+/* ── Hover State ── */
+.sidebar-menu :deep(.el-menu-item:hover) {
+  background-color: var(--claude-sidebar-hover) !important;
+}
+
+/* ── Active + Hover override ── */
+.sidebar-menu :deep(.el-menu-item.is-active:hover) {
+  background-color: var(--el-color-primary-light-9) !important;
+}
+
+/* ── Collapse Button ── */
 .collapse-btn {
   height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #bfcbd9;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--claude-sidebar-text);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
   transition: color 0.2s;
 }
 
 .collapse-btn:hover {
-  color: #409EFF;
+  color: var(--claude-orange);
 }
 </style>

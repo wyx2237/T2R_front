@@ -206,13 +206,13 @@ onMounted(fetchMetric)
 .page-content h2 {
   margin: 0 0 8px 0;
   font-size: 22px;
-  color: #303133;
+  color: var(--claude-text-dark);
 }
 
 .page-subtitle {
   margin: 0 0 24px 0;
   font-size: 14px;
-  color: #909399;
+  color: var(--claude-text-light);
   line-height: 1.6;
 }
 
@@ -221,6 +221,7 @@ onMounted(fetchMetric)
 }
 
 .section-title {
+  font-family: var(--font-display);
   font-size: 15px;
   font-weight: 600;
 }

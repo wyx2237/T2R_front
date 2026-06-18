@@ -262,6 +262,7 @@ onMounted(fetchData)
 }
 
 .section-title {
+  font-family: var(--font-display);
   font-size: 15px;
   font-weight: 600;
 }
@@ -281,12 +282,12 @@ onMounted(fetchData)
 
 .output-name {
   font-weight: 700;
-  color: #303133;
+  color: var(--claude-text-dark);
   font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
 .output-desc {
-  color: #909399;
+  color: var(--claude-text-light);
   font-size: 13px;
 }
 
@@ -299,7 +300,7 @@ onMounted(fetchData)
 }
 
 .step-card {
-  border: 1px solid #E8E8E8;
+  border: 1px solid var(--claude-border);
   border-radius: 8px;
   padding: 16px 20px;
   cursor: pointer;
@@ -312,7 +313,7 @@ onMounted(fetchData)
 }
 
 .step-card.expanded {
-  border-color: #409EFF;
+  border-color: #D97757;
   cursor: default;
 }
 
@@ -332,7 +333,7 @@ onMounted(fetchData)
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #409EFF;
+  background: #D97757;
   color: #fff;
   display: flex;
   align-items: center;
@@ -345,26 +346,26 @@ onMounted(fetchData)
 .step-title {
   font-size: 15px;
   font-weight: 600;
-  color: #303133;
+  color: var(--claude-text-dark);
 }
 
 .step-category {
   font-size: 12px;
-  color: #909399;
-  background: #F5F5F5;
+  color: var(--claude-text-light);
+  background: var(--claude-warm-bg);
   padding: 2px 10px;
   border-radius: 4px;
 }
 
 .step-toggle {
   font-size: 12px;
-  color: #909399;
+  color: var(--claude-text-light);
   flex-shrink: 0;
 }
 
 .step-desc-text {
   font-size: 14px;
-  color: #606266;
+  color: var(--claude-text-mid);
   margin: 10px 0 0 0;
   line-height: 1.6;
 }
@@ -380,16 +381,16 @@ onMounted(fetchData)
 .step-reason,
 .step-detail-text {
   font-size: 13px;
-  color: #606266;
+  color: var(--claude-text-mid);
   line-height: 1.6;
   padding: 10px 14px;
-  background: #F8F9FA;
+  background: var(--claude-warm-bg);
   border-radius: 6px;
 }
 
 .step-reason strong,
 .step-detail-text strong {
-  color: #303133;
+  color: var(--claude-text-dark);
 }
 
 .step-io {
@@ -398,7 +399,7 @@ onMounted(fetchData)
 
 .step-io h5 {
   font-size: 13px;
-  color: #303133;
+  color: var(--claude-text-dark);
   margin: 0 0 8px 0;
   font-weight: 600;
 }
@@ -412,8 +413,8 @@ onMounted(fetchData)
 .io-table th {
   text-align: left;
   padding: 8px 12px;
-  background: #F5F7FA;
-  color: #909399;
+  background: var(--claude-warm-bg);
+  color: var(--claude-text-light);
   font-weight: 500;
   font-size: 12px;
   text-transform: uppercase;
@@ -422,26 +423,26 @@ onMounted(fetchData)
 
 .io-table td {
   padding: 10px 12px;
-  border-bottom: 1px solid #F0F0F0;
-  color: #606266;
+  border-bottom: 1px solid var(--claude-border);
+  color: var(--claude-text-mid);
 }
 
 .io-name {
   font-weight: 600;
-  color: #303133;
+  color: var(--claude-text-dark);
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: 13px;
 }
 
 .io-source {
   font-size: 12px;
-  color: #409EFF;
-  background: #ECF5FF;
+  color: #D97757;
+  background: var(--el-color-primary-light-9);
   padding: 2px 8px;
   border-radius: 4px;
 }
 
 .io-desc {
-  color: #909399;
+  color: var(--claude-text-light);
 }
 </style>
