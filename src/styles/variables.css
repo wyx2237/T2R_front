@@ -35,6 +35,58 @@
   --el-color-primary-dark-2: #C05E3E;
 }
 
+/* ── Message / Notification Colors (Claude Warm Tone) ── */
+.el-message {
+  border-radius: 8px;
+  border-width: 1px;
+  box-shadow: 0 4px 16px rgba(44, 24, 16, 0.1);
+}
+
+.el-message .el-message__icon {
+  font-size: 18px;
+}
+
+.el-message .el-message__content {
+  font-size: 14px;
+  color: var(--claude-text-dark);
+}
+
+/* Success — ochre/warm */
+.el-message.el-message--success {
+  background: #FDF8F0;
+  border-color: #E8D8B8;
+}
+.el-message.el-message--success .el-message__icon {
+  color: #C9944A;
+}
+
+/* Error — warm brick red */
+.el-message.el-message--error {
+  background: #FDF2EE;
+  border-color: #E8C8B8;
+}
+.el-message.el-message--error .el-message__icon {
+  color: #C9604A;
+}
+
+/* Warning — Claude orange */
+.el-message.el-message--warning {
+  background: #FDF6F0;
+  border-color: #E8D0B8;
+}
+.el-message.el-message--warning .el-message__icon {
+  color: #D97757;
+}
+
+/* Info — warm muted */
+.el-message.el-message--info {
+  background: #F8F4EE;
+  border-color: #E0D8CE;
+}
+.el-message.el-message--info .el-message__icon {
+  color: #8C7A6E;
+}
+
 @keyframes flash-highlight {
   0%, 100% { background-color: transparent; }
   50% { background-color: #FFF7B0; }

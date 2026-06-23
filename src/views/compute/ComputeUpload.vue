@@ -18,8 +18,8 @@ const stepIndex = ref(0)
 
 const analysisSteps = [
   'Extracting key entities from case data...',
-  'Matching entities to available metrics...',
-  'Ranking best-fit metrics...',
+  'Matching entities to available indicators...',
+  'Ranking best-fit indicators...',
 ]
 const currentAnalysisStep = ref(-1)
 

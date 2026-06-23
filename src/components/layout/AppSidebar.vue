@@ -38,11 +38,11 @@ function navigate(path: string) {
       </el-menu-item>
       <el-menu-item index="/metrics">
         <el-icon><DataAnalysis /></el-icon>
-        <template #title>Metrics</template>
+        <template #title>Indicators</template>
       </el-menu-item>
       <el-menu-item index="/compute/upload">
         <el-icon><Operation /></el-icon>
-        <template #title>Compute</template>
+        <template #title>Calculation</template>
       </el-menu-item>
       <el-menu-item index="/tools">
         <el-icon><SetUp /></el-icon>

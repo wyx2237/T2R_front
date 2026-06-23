@@ -7,7 +7,7 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'tool-click', toolId: string): void
+  (e: 'tool-click', category: string): void
 }>()
 </script>
 
@@ -17,7 +17,7 @@ const emit = defineEmits<{
       v-for="step in steps"
       :key="step.order"
       :trace="step"
-      @tool-click="(toolId: string) => emit('tool-click', toolId)"
+      @tool-click="(category: string) => emit('tool-click', category)"
     />
   </div>
 </template>

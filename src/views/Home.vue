@@ -15,7 +15,7 @@ function goDoc() {
 const modules = [
   {
     icon: 'DataAnalysis',
-    title: 'Metrics',
+    title: 'Indicators',
     subtitle: '指标管理',
     desc: '管理计算指标定义、参数配置和计算流水线，支持 Pipeline 可视化展示。',
     route: '/metrics',

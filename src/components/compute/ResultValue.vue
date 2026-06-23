@@ -4,7 +4,7 @@ import { computed } from 'vue'
 const props = defineProps<{
   value: number
   unit: string
-  status?: 'normal' | 'borderline' | 'abnormal'
+  status?: 'normal' | 'borderline' | 'abnormal' | 'error'
 }>()
 
 const statusColor = computed(() => {
@@ -15,13 +15,26 @@ const statusColor = computed(() => {
     default: return '#303133'
   }
 })
+
+const displayValue = computed(() => {
+  const v = props.value
+  if (typeof v !== 'number') return v
+  if (Number.isInteger(v)) return v
+  const str = v.toString()
+  const decimalIndex = str.indexOf('.')
+  if (decimalIndex === -1) return v
+  if (str.length - decimalIndex - 1 > 4) {
+    return Number(v.toFixed(4))
+  }
+  return v
+})
 </script>
 
 <template>
   <div class="result-value">
     <div class="value-main">
       <span class="value-number" :style="{ color: statusColor }">
-        {{ value }}
+        {{ displayValue }}
       </span>
       <span class="value-unit">{{ unit }}</span>
     </div>

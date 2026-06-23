@@ -9,7 +9,9 @@ import MetricResultCard from '@/components/compute/MetricResultCard.vue'
 import ComputeSteps from '@/components/compute/ComputeSteps.vue'
 import { useClipboard } from '@/composables/useClipboard'
 import { exportReport } from '@/api/compute'
+import CodeBlock from '@/components/shared/CodeBlock.vue'
 import { ElMessage } from 'element-plus'
+import { InfoFilled, SetUp, Collection } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const computeStore = useComputeStore()
@@ -23,20 +25,33 @@ const toolDrawerVisible = ref(false)
 const selectedTool = ref<AtomicTool | null>(null)
 
 const computing = ref(true)
-const computationDone = ref(false)
 const computeError = ref('')
 
 const singleResult = computed(() => computeStore.results[0] ?? null)
 
+function formatNumber(val: number): number | string {
+  if (typeof val !== 'number') return val
+  if (Number.isInteger(val)) return val
+  const str = val.toString()
+  const decimalIndex = str.indexOf('.')
+  if (decimalIndex === -1) return val
+  if (str.length - decimalIndex - 1 > 4) {
+    return Number(val.toFixed(4))
+  }
+  return val
+}
+
+const isResultError = computed(() => singleResult.value?.status === 'error')
+
 const computingSteps = [
   { label: 'Extracting parameters from case text', icon: 'Search' },
-  { label: 'Matching parameters to metric inputs', icon: 'Connection' },
+  { label: 'Matching parameters to indicator inputs', icon: 'Connection' },
   { label: 'Running computation workflow', icon: 'Loading' },
   { label: 'Evaluating results', icon: 'Finished' },
 ]
 
-function handleToolClick(toolId: string) {
-  const tool = tools.value.find((t) => t.id === toolId)
+function handleToolClick(category: string) {
+  const tool = tools.value.find((t) => t.MetaInfo.Name === category)
   if (tool) {
     selectedTool.value = tool
     toolDrawerVisible.value = true
@@ -73,9 +88,13 @@ async function handleExport() {
 function handleCopySummary() {
   if (!singleResult.value) return
   const r = singleResult.value
-  const text = `${r.metricName} (${r.metricCode}): ${r.finalValue} ${r.finalUnit}` +
-    (r.statusLabel ? ` — ${r.statusLabel}` : '')
-  copy(text)
+  if (isResultError.value) {
+    copy(`${r.metricName} (${r.metricCode}): ${r.statusLabel || 'Error'}`)
+  } else {
+    const text = `${r.metricName} (${r.metricCode}): ${r.finalValue} ${r.finalUnit}` +
+      (r.statusLabel ? ` — ${r.statusLabel}` : '')
+    copy(text)
+  }
 }
 
 onMounted(async () => {
@@ -95,7 +114,7 @@ onMounted(async () => {
   try {
     await new Promise((resolve) => setTimeout(resolve, 3000))
     await computeStore.executeCompute()
-    computationDone.value = true // manual dismiss
+    computing.value = false
   } catch {
     computeError.value = 'Computation failed. Please go back and try again.'
     computing.value = false
@@ -129,14 +148,6 @@ onMounted(async () => {
             <span class="step-label">{{ step.label }}</span>
           </div>
         </div>
-        <el-button
-          v-if="computationDone"
-          type="primary"
-          class="dismiss-btn"
-          @click="computing = false"
-        >
-          View Results
-        </el-button>
       </div>
     </el-card>
 
@@ -160,33 +171,56 @@ onMounted(async () => {
 
       <div class="single-summary">
         <div class="summary-item">
-          <span class="summary-label">Metric</span>
-          <span class="summary-value">{{ singleResult.metricName }} ({{ singleResult.metricCode }})</span>
-        </div>
-        <div class="summary-item">
-          <span class="summary-label">Result</span>
-          <span class="result-cell">
-            <span class="status-dot" :class="singleResult.status ? `dot-${singleResult.status}` : ''" />
-            <span
-              class="result-value-lg"
-              :class="singleResult.status ? `status-${singleResult.status}` : ''"
-            >
-              {{ singleResult.finalValue }}
-            </span>
-            <span class="result-unit">{{ singleResult.finalUnit }}</span>
+          <span class="summary-label">Indicator</span>
+          <span class="summary-value">
+            <code class="code-badge">&lt;{{ singleResult.metricCode }}&gt;</code>
+            {{ singleResult.metricName }}
           </span>
         </div>
-        <div class="summary-item">
-          <span class="summary-label">Status</span>
-          <el-tag
-            v-if="singleResult.status && singleResult.statusLabel"
-            :type="singleResult.status === 'normal' ? 'success' : singleResult.status === 'borderline' ? 'warning' : 'danger'"
-            size="small"
-          >
-            {{ singleResult.statusLabel }}
-          </el-tag>
-          <span v-else class="status-na">—</span>
-        </div>
+
+        <template v-if="isResultError">
+          <div class="summary-item">
+            <span class="summary-label">Status</span>
+            <el-tag
+              v-if="singleResult.statusLabel"
+              class="status-tag"
+              :class="`status-tag--${singleResult.status || 'default'}`"
+              size="small"
+            >
+              <span class="status-tag-dot" />
+              {{ singleResult.statusLabel }}
+            </el-tag>
+          </div>
+        </template>
+
+        <template v-else>
+          <div class="summary-item">
+            <span class="summary-label">Result</span>
+            <span class="result-cell">
+              <span class="status-dot" :class="singleResult.status ? `dot-${singleResult.status}` : ''" />
+              <span
+                class="result-value-lg"
+                :class="singleResult.status ? `status-${singleResult.status}` : ''"
+              >
+                {{ formatNumber(singleResult.finalValue) }}
+              </span>
+              <span class="result-unit">{{ singleResult.finalUnit }}</span>
+            </span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Status</span>
+            <el-tag
+              v-if="singleResult.status && singleResult.statusLabel"
+              class="status-tag"
+              :class="`status-tag--${singleResult.status || 'default'}`"
+              size="small"
+            >
+              <span class="status-tag-dot" />
+              {{ singleResult.statusLabel }}
+            </el-tag>
+            <span v-else class="status-na">—</span>
+          </div>
+        </template>
       </div>
 
       <div class="summary-actions">
@@ -196,7 +230,7 @@ onMounted(async () => {
         </el-button>
         <el-button @click="handleReSelect">
           <el-icon><RefreshLeft /></el-icon>
-          Re-select Metric
+          Re-select Indicator
         </el-button>
         <el-button @click="handleCopySummary">
           <el-icon><CopyDocument /></el-icon>
@@ -232,7 +266,7 @@ onMounted(async () => {
       <template #header>
         <div class="region-header">
           <el-icon :size="22"><DataAnalysis /></el-icon>
-          <span>Metric Result</span>
+          <span>Indicator Result</span>
           <el-button text size="small" style="margin-left: auto" @click="metricsExpanded = !metricsExpanded">
             {{ metricsExpanded ? 'Collapse' : 'Expand' }}
           </el-button>
@@ -255,25 +289,110 @@ onMounted(async () => {
     <!-- Tool Detail Drawer -->
     <el-drawer
       v-model="toolDrawerVisible"
-      :title="selectedTool?.MetaInfo.Name || 'Tool Detail'"
-      size="500px"
+      size="520px"
+      class="tool-detail-drawer"
     >
       <template v-if="selectedTool">
-        <div class="drawer-section">
-          <h4>Description</h4>
-          <p>{{ selectedTool.MetaInfo.Description }}</p>
-        </div>
-        <div class="drawer-section">
-          <h4>Scope</h4>
-          <p>{{ selectedTool.MetaInfo.Scope }}</p>
-        </div>
-        <div class="drawer-section">
-          <h4>Execution Logic</h4>
-          <ol>
-            <li v-for="(step, i) in selectedTool.ExecInfo.Logic" :key="i">
-              {{ step }}
-            </li>
-          </ol>
+        <div class="tool-drawer-body">
+          <!-- Header: Name + Description -->
+          <div class="drawer-header">
+            <h3 class="drawer-tool-name">{{ selectedTool.MetaInfo.Name }}</h3>
+            <p class="drawer-tool-desc">{{ selectedTool.MetaInfo.Description }}</p>
+          </div>
+
+          <!-- Scope -->
+          <div class="drawer-meta-row">
+            <span class="drawer-meta-tag">Scope</span>
+            <span class="drawer-meta-text">{{ selectedTool.MetaInfo.Scope }}</span>
+          </div>
+
+          <!-- Language + Libraries -->
+          <div class="drawer-meta-row drawer-meta-row-split">
+            <div class="drawer-meta-half">
+              <span class="drawer-meta-tag">Language</span>
+              <el-tag size="small" type="info" effect="plain">{{ selectedTool.ExecInfo.Language }}</el-tag>
+            </div>
+            <div class="drawer-meta-half">
+              <span class="drawer-meta-tag">Libraries</span>
+              <template v-if="selectedTool.ExecInfo.Library.length > 0">
+                <el-tag
+                  v-for="lib in selectedTool.ExecInfo.Library"
+                  :key="lib"
+                  size="small"
+                  type="info"
+                  effect="plain"
+                  style="margin-right: 4px"
+                >
+                  {{ lib }}
+                </el-tag>
+              </template>
+              <span v-else class="drawer-no-libs">—</span>
+            </div>
+          </div>
+
+          <!-- FlowInfo -->
+          <el-divider />
+          <div class="drawer-section">
+            <div class="drawer-section-badge badge-flow">
+              <el-icon><InfoFilled /></el-icon>
+              <span>FlowInfo</span>
+            </div>
+            <div class="drawer-flow-grid">
+              <div class="drawer-flow-item">
+                <h5>Input</h5>
+                <p>{{ selectedTool.FlowInfo.Input.Description }}</p>
+                <CodeBlock :code="selectedTool.FlowInfo.Input.Example" lang="json" />
+              </div>
+              <div class="drawer-flow-item">
+                <h5>Output</h5>
+                <p>{{ selectedTool.FlowInfo.Output.Description }}</p>
+                <CodeBlock :code="selectedTool.FlowInfo.Output.Example" lang="json" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Execution Logic -->
+          <el-divider />
+          <div class="drawer-section">
+            <div class="drawer-section-badge badge-exec">
+              <el-icon><SetUp /></el-icon>
+              <span>Execution Logic</span>
+            </div>
+            <ol class="drawer-logic-steps">
+              <li v-for="(step, i) in selectedTool.ExecInfo.Logic" :key="i">
+                {{ step }}
+              </li>
+            </ol>
+          </div>
+
+          <!-- Examples -->
+          <el-divider />
+          <div class="drawer-section">
+            <div class="drawer-section-badge badge-examples">
+              <el-icon><Collection /></el-icon>
+              <span>Examples ({{ selectedTool.Examples.length }})</span>
+            </div>
+            <div
+              v-for="(ex, i) in selectedTool.Examples"
+              :key="i"
+              class="drawer-example-item"
+            >
+              <h5 class="drawer-example-name">{{ ex.ToolName }}</h5>
+              <div class="drawer-example-inline">
+                <span class="drawer-example-label">Parameters</span>
+                <code class="drawer-inline-params">{{ JSON.stringify(ex.Parameters) }}</code>
+              </div>
+              <div class="drawer-example-inline">
+                <span class="drawer-example-label">Output</span>
+                <code class="drawer-inline-params">{{ JSON.stringify(ex.Output) }}</code>
+              </div>
+              <div class="drawer-example-block">
+                <span class="drawer-example-label">Code</span>
+                <CodeBlock :code="ex.Code" lang="python" />
+              </div>
+              <el-divider v-if="i < selectedTool.Examples.length - 1" />
+            </div>
+          </div>
         </div>
       </template>
     </el-drawer>
@@ -330,6 +449,14 @@ onMounted(async () => {
   font-weight: 500;
 }
 
+.code-badge {
+  font-weight: 700;
+  color: #D97757;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 14px;
+  margin-right: 8px;
+}
+
 .result-value-lg {
   font-weight: 700;
   font-size: 24px;
@@ -344,6 +471,10 @@ onMounted(async () => {
 }
 
 .result-value-lg.status-abnormal {
+  color: #FF4D4F;
+}
+
+.result-value-lg.status-error {
   color: #FF4D4F;
 }
 
@@ -371,6 +502,7 @@ onMounted(async () => {
 .status-dot.dot-normal { background: #52C41A; }
 .status-dot.dot-borderline { background: #FAAD14; }
 .status-dot.dot-abnormal { background: #FF4D4F; }
+.status-dot.dot-error { background: #FF4D4F; }
 
 .summary-actions {
   display: flex;
@@ -384,26 +516,226 @@ onMounted(async () => {
   font-size: 13px;
 }
 
-.drawer-section {
-  margin-bottom: 20px;
+/* ── Status Tags (Claude style) ── */
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: none !important;
+  font-weight: 600;
+  padding: 4px 12px !important;
+  border-radius: 4px;
 }
 
-.drawer-section h4 {
-  margin: 0 0 8px 0;
-  font-size: 14px;
+.status-tag-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-tag--normal {
+  background: #E8F8E0 !important;
+  color: #389E0D !important;
+}
+.status-tag--normal .status-tag-dot {
+  background: #52C41A;
+}
+
+.status-tag--borderline {
+  background: #FFF7E6 !important;
+  color: #D48806 !important;
+}
+.status-tag--borderline .status-tag-dot {
+  background: #FAAD14;
+}
+
+.status-tag--abnormal {
+  background: #FFF0F0 !important;
+  color: #CF1322 !important;
+}
+.status-tag--abnormal .status-tag-dot {
+  background: #FF4D4F;
+}
+
+.status-tag--error {
+  background: #FFF0F0 !important;
+  color: #CF1322 !important;
+}
+.status-tag--error .status-tag-dot {
+  background: #FF4D4F;
+}
+
+/* ── Tool Detail Drawer (matches ToolLibrary.vue card style) ── */
+.tool-detail-drawer :deep(.el-drawer__body) {
+  padding: 20px 24px;
+}
+
+.tool-drawer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.drawer-header {
+  margin-bottom: 14px;
+}
+
+.drawer-tool-name {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
   color: var(--claude-text-dark);
+  margin: 0 0 10px 0;
 }
 
-.drawer-section p,
-.drawer-section ol {
+.drawer-tool-desc {
+  font-size: 14px;
+  color: var(--claude-text-mid);
+  line-height: 1.7;
   margin: 0;
+}
+
+.drawer-meta-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.drawer-meta-row-split {
+  gap: 32px;
+}
+
+.drawer-meta-half {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.drawer-meta-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--claude-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  background: var(--claude-warm-bg);
+  padding: 2px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.drawer-meta-text {
   font-size: 13px;
   color: var(--claude-text-mid);
   line-height: 1.6;
 }
 
-.drawer-section ol {
-  padding-left: 20px;
+.drawer-no-libs {
+  color: var(--claude-text-light);
+  font-size: 13px;
+}
+
+.drawer-section {
+  margin-bottom: 4px;
+}
+
+.drawer-section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 6px;
+  margin: 0 0 14px 0;
+}
+
+.badge-flow {
+  background: var(--el-color-primary-light-9);
+  color: #D97757;
+}
+
+.badge-exec {
+  background: #F0F9EB;
+  color: #67C23A;
+}
+
+.badge-examples {
+  background: #F4F0FE;
+  color: #9065E6;
+}
+
+.drawer-section h5 {
+  font-size: 14px;
+  color: var(--claude-text-dark);
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
+.drawer-flow-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.drawer-flow-item p {
+  font-size: 13px;
+  color: #6B7280;
+  line-height: 1.6;
+  margin: 0 0 10px 0;
+}
+
+.drawer-logic-steps {
+  margin: 0;
+  padding-left: 22px;
+  font-size: 13px;
+  color: var(--claude-text-mid);
+  line-height: 2;
+}
+
+.drawer-logic-steps li {
+  padding-left: 2px;
+}
+
+.drawer-example-item {
+  margin-bottom: 8px;
+}
+
+.drawer-example-name {
+  font-size: 14px;
+  color: var(--claude-text-dark);
+  margin: 0 0 14px 0;
+  font-weight: 600;
+}
+
+.drawer-example-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.drawer-inline-params {
+  font-size: 13px;
+  color: var(--claude-text-mid);
+  background: #F8F9FA;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.drawer-example-block {
+  margin-bottom: 14px;
+}
+
+.drawer-example-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #969BA3;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 /* Loading */
@@ -512,9 +844,6 @@ onMounted(async () => {
   line-height: 1.4;
 }
 
-.dismiss-btn {
-  margin-top: 24px;
-}
 
 /* Error */
 .error-card {

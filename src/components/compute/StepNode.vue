@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { StepTrace } from '@/types/compute'
-import { toolAccentColor } from '@/composables/useToolColor'
-import CodeBlock from '@/components/shared/CodeBlock.vue'
 
 const props = defineProps<{
   trace: StepTrace
 }>()
 
 const emit = defineEmits<{
-  (e: 'tool-click', toolId: string): void
+  (e: 'tool-click', category: string): void
 }>()
 
 const expanded = ref(false)
@@ -18,8 +16,17 @@ function toggleExpand() {
   expanded.value = !expanded.value
 }
 
-function handleToolClick() {
-  emit('tool-click', props.trace.toolId)
+function formatSource(source: string): string {
+  // $|inputs|.xxx → Raw Text - xxx
+  const inputsMatch = source.match(/^\$\|inputs\|\.(.+)$/)
+  if (inputsMatch) return `Raw Text - ${inputsMatch[1]}`
+  // $|<number>|.xxx → Step <number> - xxx
+  const stepNumMatch = source.match(/^\$\|(\d+)\|\.(.+)$/)
+  if (stepNumMatch) return `Step ${stepNumMatch[1]} - ${stepNumMatch[2]}`
+  // $|step<number>|.xxx → Step <number> - xxx
+  const stepStrMatch = source.match(/^\$\|step(\d+)\|\.(.+)$/)
+  if (stepStrMatch) return `Step ${stepStrMatch[1]} - ${stepStrMatch[2]}`
+  return source
 }
 </script>
 
@@ -28,7 +35,7 @@ function handleToolClick() {
     <div class="step-header" @click="toggleExpand">
       <div class="step-header-left">
         <span class="step-number">Step {{ trace.order }}</span>
-        <span class="step-name">{{ trace.stepName }}</span>
+        <span class="step-name">{{ trace.step_name }}</span>
       </div>
       <div class="step-header-right">
         <span
@@ -46,59 +53,66 @@ function handleToolClick() {
     </div>
 
     <div v-if="expanded" class="step-body">
-      <!-- Tool Name -->
-      <div class="step-section">
-        <div class="section-label">Tool Name</div>
-        <div class="tool-name-row">
-          <span
-            class="tool-name-text"
-            :style="{ borderLeftColor: toolAccentColor(trace.toolId) }"
-          >{{ trace.toolName }}</span>
-          <el-button text type="primary" size="small" @click="handleToolClick">
-            View Tool Details
-          </el-button>
-        </div>
+      <!-- Category -->
+      <div class="category-row">
+        <span class="section-label">CATEGORY</span>
+        <el-tag
+          class="category-tag"
+          size="small"
+          type="info"
+          effect="plain"
+          @click.stop="emit('tool-click', trace.category)"
+        >
+          {{ trace.category }}
+        </el-tag>
       </div>
 
-      <!-- Logic -->
+      <!-- Description -->
       <div class="step-section">
-        <div class="section-label">Logic</div>
-        <p class="logic-text">{{ trace.description }}</p>
-        <div
-          v-if="trace.formulaLatex"
-          class="formula-latex"
-          v-text="trace.formulaLatex"
-        />
+        <div class="section-label">Description</div>
+        <p class="desc-text">{{ trace.step_description }}</p>
       </div>
 
-      <!-- Input -->
+      <!-- Inputs -->
       <div class="step-section">
-        <div class="section-label">Input</div>
+        <div class="section-label">Inputs</div>
         <div class="input-cards">
           <div
-            v-for="(value, key) in trace.input"
-            :key="key"
+            v-for="item in trace.inputs"
+            :key="item.input_name"
             class="input-card"
           >
             <div class="input-card-left">
-              <span class="input-param-name">{{ key }}</span>
-              <span class="input-param-value">{{ value }}</span>
+              <span class="input-param-name">{{ item.input_name }}</span>
+              <span class="input-param-value">{{ item.input_value }}</span>
+              <span class="input-param-unit">{{ item.input_unit }}</span>
             </div>
             <el-tag
-              v-if="trace.inputSource[key]"
-              :type="trace.inputSource[key].sourceType === 'raw' ? '' : 'success'"
+              v-if="item.input_source"
+              :type="item.input_source.includes('inputs') ? '' : 'success'"
               size="small"
             >
-              {{ trace.inputSource[key].sourceLabel }}
+              <span class="from-label">from</span>
+              {{ formatSource(item.input_source) }}
             </el-tag>
           </div>
         </div>
       </div>
 
-      <!-- Output -->
+      <!-- Outputs -->
       <div class="step-section">
-        <div class="section-label">Output</div>
-        <CodeBlock :code="trace.output" lang="json" />
+        <div class="section-label">Outputs</div>
+        <div class="output-cards">
+          <div
+            v-for="item in trace.outputs"
+            :key="item.output_name"
+            class="output-card"
+          >
+            <span class="output-name">{{ item.output_name }}</span>
+            <span class="output-value">{{ item.output_value }}</span>
+            <span v-if="item.output_unit" class="output-unit">{{ item.output_unit }}</span>
+          </div>
+        </div>
         <div class="step-status">
           <span v-if="trace.status === 'success'" class="status-success">
             &#10003; Success
@@ -168,23 +182,6 @@ function handleToolClick() {
   color: #303133;
 }
 
-.tool-name-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.tool-name-text {
-  display: inline-block;
-  font-size: 14px;
-  color: #303133;
-  font-weight: 600;
-  background: var(--claude-warm-bg);
-  padding: 4px 12px 4px 16px;
-  border-left: 3px solid #D97757;
-  border-radius: 0 4px 4px 0;
-}
-
 .expand-icon {
   transition: transform 0.2s;
 }
@@ -211,6 +208,28 @@ function handleToolClick() {
   font-weight: 600;
   color: #999;
   text-transform: uppercase;
+}
+
+.desc-text {
+  font-size: 13px;
+  color: #606266;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.category-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.category-tag {
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.category-tag:hover {
+  opacity: 0.7;
 }
 
 .input-cards {
@@ -253,20 +272,51 @@ function handleToolClick() {
   font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
-.logic-text {
-  font-size: 13px;
-  color: #606266;
-  margin: 0;
-  line-height: 1.6;
+.input-param-unit {
+  font-size: 12px;
+  color: #909399;
 }
 
-.formula-latex {
+.from-label {
+  font-size: 10px;
+  color: #999;
+  margin-right: 2px;
+  font-weight: 400;
+}
+
+.output-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.output-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #FAFAFA;
+  border: 1px solid #EEE;
+  border-radius: 6px;
+}
+
+.output-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #606266;
+  min-width: 60px;
+}
+
+.output-value {
   font-size: 14px;
   color: #303133;
-  padding: 8px 12px;
-  background: var(--claude-warm-bg);
-  border-radius: 4px;
-  font-family: 'KaTeX_Main', 'Times New Roman', serif;
+  font-family: 'SF Monaco', 'Fira Code', monospace;
+  font-weight: 600;
+}
+
+.output-unit {
+  font-size: 12px;
+  color: #909399;
 }
 
 .step-status {

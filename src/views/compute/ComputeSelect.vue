@@ -73,7 +73,7 @@ function selectMetricFromTree(metricId: string) {
 
 async function handleCompute() {
   if (!computeStore.selectedMetricId) {
-    ElMessage.warning('Please select a metric')
+    ElMessage.warning('Please select an indicator')
     return
   }
   router.push(`/compute/${computeStore.sessionId}/execute`)
@@ -123,7 +123,7 @@ if (!computeStore.sessionId) {
       <template #header>
         <div class="region-header">
           <el-icon :size="22"><DataAnalysis /></el-icon>
-          <span>Recommended Metrics</span>
+          <span>Recommended Indicators</span>
         </div>
       </template>
 
@@ -168,7 +168,7 @@ if (!computeStore.sessionId) {
 
       <el-empty
         v-if="recommendedMetrics.length === 0"
-        description="No matching metrics found"
+        description="No matching indicators found"
       />
     </el-card>
 
@@ -178,9 +178,9 @@ if (!computeStore.sessionId) {
         <div class="browse-header">
           <div class="region-header">
             <el-icon :size="22"><FolderOpened /></el-icon>
-            <span>Browse All Metrics</span>
+            <span>Browse All Indicators</span>
           </div>
-          <span class="browse-hint">Select any metric from the library. Computation may fail if required parameters are missing from the case.</span>
+          <span class="browse-hint">Select any indicator from the library. Computation may fail if required parameters are missing from the case.</span>
         </div>
       </template>
       <el-tree
@@ -205,7 +205,7 @@ if (!computeStore.sessionId) {
       <template #header>
         <div class="region-header">
           <el-icon :size="22"><Select /></el-icon>
-          <span>Selected Metric</span>
+          <span>Selected Indicator</span>
         </div>
       </template>
       <el-descriptions :column="2" border size="small">
@@ -230,7 +230,7 @@ if (!computeStore.sessionId) {
     </el-card>
 
     <div class="section-card" v-else>
-      <div class="no-selection">No metric selected</div>
+      <div class="no-selection">No indicator selected</div>
     </div>
 
     <!-- Action Buttons -->
@@ -241,7 +241,7 @@ if (!computeStore.sessionId) {
         :disabled="!computeStore.selectedMetricId"
         @click="handleCompute"
       >
-        Compute &rarr;
+        Calculate &rarr;
       </el-button>
     </div>
   </div>

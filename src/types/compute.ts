@@ -10,19 +10,26 @@ export interface ExtractedParam {
   position: { start: number; end: number }
 }
 
+export interface StepTraceInput {
+  input_name: string
+  input_value: unknown
+  input_unit?: string
+  input_source: string
+}
+
+export interface StepTraceOutput {
+  output_name: string
+  output_value: unknown
+  output_unit?: string
+}
+
 export interface StepTrace {
   order: number
-  stepName?: string
-  toolId: string
-  toolName: string
-  description: string
-  formulaLatex?: string
-  input: Record<string, unknown>
-  inputSource: Record<string, {
-    sourceType: 'raw' | 'step'
-    sourceLabel: string
-  }>
-  output: Record<string, unknown>
+  category: string
+  step_name: string
+  step_description: string
+  inputs: StepTraceInput[]
+  outputs: StepTraceOutput[]
   status: 'success' | 'error'
   errorMessage?: string
 }
@@ -33,7 +40,7 @@ export interface MetricComputeResult {
   metricCode: string
   finalValue: number
   finalUnit: string
-  status?: 'normal' | 'borderline' | 'abnormal'
+  status?: 'normal' | 'borderline' | 'abnormal' | 'error'
   statusLabel?: string
   referenceRange?: { min: number; max: number }
   steps: StepTrace[]

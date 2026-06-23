@@ -33,7 +33,7 @@ async function fetchMetrics() {
       // Fetch all to get departments (simplified — in production the backend would return a department list)
     }
   } catch {
-    ElMessage.error('Failed to load metrics')
+    ElMessage.error('Failed to load indicators')
   } finally {
     loading.value = false
   }
@@ -47,7 +47,7 @@ async function handleDelete(metric: Metric) {
       { type: 'warning' }
     )
     await deleteMetric(metric.id)
-    ElMessage.success('Metric deleted')
+    ElMessage.success('Indicator deleted')
     fetchMetrics()
   } catch {
     // cancelled
@@ -77,6 +77,14 @@ watch(
   () => fetchMetrics()
 )
 
+watch(
+  () => filters.pageSize,
+  () => {
+    filters.page = 1
+    fetchMetrics()
+  }
+)
+
 onMounted(() => {
   fetchMetrics()
   // Get department list
@@ -89,10 +97,15 @@ onMounted(() => {
 <template>
   <div class="metric-list-page">
     <div class="page-header">
-      <h2>Metrics Management</h2>
-      <el-button type="primary" @click="router.push('/metrics/create')">
-        + New Metric
-      </el-button>
+      <h2>Indicators Management</h2>
+      <div class="header-actions">
+        <el-button @click="fetchMetrics">
+          ⟳ Refresh
+        </el-button>
+        <el-button type="primary" @click="router.push('/metrics/create')">
+          + New Indicator
+        </el-button>
+      </div>
     </div>
 
     <el-card class="filter-card">
@@ -158,21 +171,14 @@ onMounted(() => {
             >
               Edit
             </el-button>
-            <el-popconfirm
-              title="Are you sure to delete this metric?"
-              @confirm="handleDelete(row)"
+            <el-button
+              text
+              type="danger"
+              size="small"
+              @click.stop="handleDelete(row)"
             >
-              <template #reference>
-                <el-button
-                  text
-                  type="danger"
-                  size="small"
-                  @click.stop
-                >
-                  Delete
-                </el-button>
-              </template>
-            </el-popconfirm>
+              Delete
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -202,6 +208,11 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .page-header h2 {

@@ -9,14 +9,17 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'tool-click', toolId: string): void
+  (e: 'tool-click', category: string): void
 }>()
+
+const isError = computed(() => props.result.status === 'error')
 
 const statusTagType = computed(() => {
   switch (props.result.status) {
     case 'normal': return 'success'
     case 'borderline': return 'warning'
     case 'abnormal': return 'danger'
+    case 'error': return 'danger'
     default: return 'info'
   }
 })
@@ -36,23 +39,34 @@ const statusTagType = computed(() => {
       </el-tag>
     </div>
 
-    <ResultValue
-      :value="result.finalValue"
-      :unit="result.finalUnit"
-      :status="result.status"
-    />
+    <template v-if="isError">
+      <el-alert
+        title="Missing required parameters for indicator computation"
+        type="error"
+        show-icon
+        :closable="false"
+      />
+    </template>
 
-    <div v-if="result.referenceRange" class="reference-range">
-      Reference: {{ result.referenceRange.min }} — {{ result.referenceRange.max }}
-      {{ result.finalUnit }}
-    </div>
+    <template v-else>
+      <ResultValue
+        :value="result.finalValue"
+        :unit="result.finalUnit"
+        :status="result.status"
+      />
 
-    <el-divider />
+      <div v-if="result.referenceRange" class="reference-range">
+        Reference: {{ result.referenceRange.min }} — {{ result.referenceRange.max }}
+        {{ result.finalUnit }}
+      </div>
 
-    <StepTracePanel
-      :steps="result.steps"
-      @tool-click="(toolId: string) => emit('tool-click', toolId)"
-    />
+      <el-divider />
+
+      <StepTracePanel
+        :steps="result.steps"
+        @tool-click="(category: string) => emit('tool-click', category)"
+      />
+    </template>
   </div>
 </template>
 

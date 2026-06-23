@@ -8,16 +8,19 @@ import type { FormInstance, FormRules } from 'element-plus'
 const router = useRouter()
 const formRef = ref<FormInstance>()
 const submitting = ref(false)
-const showAdvanced = ref(false)
+const creating = ref(false)
+const creationStep = ref(-1)
+
+const creationSteps = [
+  { label: 'Question Decomposition', desc: 'Break down the question into atomic step sequences', icon: 'Search' },
+  { label: 'Workflow Modeling', desc: 'Integrate step inputs and outputs into a complete workflow', icon: 'Operation' },
+  { label: 'Dependency Verification', desc: 'Verify the correctness of step dependency relationships', icon: 'Connection' },
+  { label: 'Code Synthesis', desc: 'Synthesize executable code for each step', icon: 'Finished' },
+]
 
 const form = reactive<CreateMetricData>({
   question: '',
   formula: '',
-  name: '',
-  code: '',
-  department: '',
-  reference: '',
-  description: '',
 })
 
 const rules: FormRules = {
@@ -28,29 +31,7 @@ const rules: FormRules = {
   formula: [
     { required: true, message: 'Please enter the formula', trigger: 'blur' },
   ],
-  name: [
-    { required: true, message: 'Indicator name is required', trigger: 'blur' },
-  ],
-  code: [
-    { required: true, message: 'Indicator code is required', trigger: 'blur' },
-  ],
-  department: [
-    { required: true, message: 'Department is required', trigger: 'blur' },
-  ],
 }
-
-const departmentOptions = [
-  'General',
-  'Cardiology',
-  'Nephrology',
-  'Neurology',
-  'Pulmonology',
-  'Endocrinology',
-  'Gastroenterology',
-  'Hematology',
-  'Oncology',
-  'Pediatrics',
-]
 
 async function handleSubmit() {
   if (!formRef.value) return
@@ -61,32 +42,30 @@ async function handleSubmit() {
     return
   }
 
-  submitting.value = true
-  try {
-    // Auto-fill name from question if advanced fields not expanded
-    if (!showAdvanced.value) {
-      form.name = ''
-      form.code = ''
-      form.department = ''
-      form.reference = ''
-      form.description = ''
-    }
+  creating.value = true
+  creationStep.value = -1
 
-    const { metricId } = await createMetric({
-      question: form.question,
-      formula: form.formula || undefined,
-      name: form.name || undefined,
-      code: form.code || undefined,
-      department: form.department || undefined,
-      reference: form.reference || undefined,
-      description: form.description || undefined,
-    })
+  // Run stages animation in parallel with API call
+  const apiPromise = createMetric({
+    question: form.question,
+    formula: form.formula || undefined,
+  })
+
+  // Animate through stages
+  for (let i = 0; i < creationSteps.length; i++) {
+    creationStep.value = i
+    const delay = 4000 + Math.random() * 2000 // 4-6s per stage
+    await new Promise((resolve) => setTimeout(resolve, delay))
+  }
+
+  // Wait for API if it hasn't finished yet
+  try {
+    const { metricId } = await apiPromise
     ElMessage.success('Indicator created successfully')
     router.push(`/metrics/${metricId}`)
   } catch {
     ElMessage.error('Failed to create indicator')
-  } finally {
-    submitting.value = false
+    creating.value = false
   }
 }
 
@@ -97,7 +76,41 @@ function handleCancel() {
 
 <template>
   <div class="metric-create-page">
-    <div class="page-content">
+    <!-- Creating Animation -->
+    <el-card v-if="creating" class="creating-card">
+      <div class="creating-spinner">
+        <div class="creating-ring" />
+        <el-icon :size="36" class="creating-icon"><DataAnalysis /></el-icon>
+      </div>
+      <h3 class="creating-title">Creating Indicator</h3>
+      <p class="creating-subtitle">Processing your request through the pipeline</p>
+      <div class="creating-steps">
+        <div
+          v-for="(step, i) in creationSteps"
+          :key="i"
+          class="creation-step"
+          :class="{
+            done: i < creationStep,
+            current: i === creationStep,
+            pending: i > creationStep,
+          }"
+        >
+          <span class="creation-step-icon">
+            <template v-if="i < creationStep">&#10003;</template>
+            <template v-else-if="i === creationStep">
+              <span class="creation-step-dot" />
+            </template>
+            <template v-else><span class="creation-step-circle" /></template>
+          </span>
+          <div class="creation-step-label-group">
+            <span class="creation-step-label">{{ step.label }}</span>
+            <span class="creation-step-desc">{{ step.desc }}</span>
+          </div>
+        </div>
+      </div>
+    </el-card>
+
+    <div v-if="!creating" class="page-content">
       <h2>Create New Indicator</h2>
       <p class="page-subtitle">
         Describe what you want to calculate in natural language. The system will
@@ -114,7 +127,10 @@ function handleCancel() {
         <!-- Core fields -->
         <el-card class="form-section">
           <template #header>
-            <span class="section-title">Indicator Definition</span>
+            <div class="region-header">
+              <el-icon :size="22"><EditPen /></el-icon>
+              <span>Indicator Definition</span>
+            </div>
           </template>
 
           <el-form-item label="Question / Description" prop="question">
@@ -130,86 +146,8 @@ function handleCancel() {
             <el-input
               v-model="form.formula"
               type="textarea"
-              :rows="3"
+              :rows="6"
               placeholder="e.g., eGFR = 142 × min(Scr/κ, 1)^α × max(Scr/κ, 1)^(-1.200) × 0.9938^Age × 1.012 [if female]"
-            />
-          </el-form-item>
-        </el-card>
-
-        <!-- Advanced fields toggle -->
-        <div class="advanced-toggle">
-          <el-button
-            text
-            type="primary"
-            @click="showAdvanced = !showAdvanced"
-          >
-            <el-icon>
-              <component :is="showAdvanced ? 'ArrowUp' : 'ArrowDown'" />
-            </el-icon>
-            {{ showAdvanced ? 'Hide' : 'Show' }} Advanced Fields
-          </el-button>
-        </div>
-
-        <!-- Advanced fields -->
-        <el-card v-if="showAdvanced" class="form-section">
-          <template #header>
-            <span class="section-title">Metadata (Advanced)</span>
-          </template>
-
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <el-form-item label="Indicator Name" prop="name">
-                <el-input
-                  v-model="form.name"
-                  placeholder="e.g., eGFR (CKD-EPI)"
-                />
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="Indicator Code" prop="code">
-                <el-input
-                  v-model="form.code"
-                  placeholder="e.g., REN-001"
-                />
-              </el-form-item>
-            </el-col>
-          </el-row>
-
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <el-form-item label="Department" prop="department">
-                <el-select
-                  v-model="form.department"
-                  placeholder="Select department"
-                  style="width: 100%"
-                  filterable
-                  clearable
-                >
-                  <el-option
-                    v-for="dept in departmentOptions"
-                    :key="dept"
-                    :label="dept"
-                    :value="dept"
-                  />
-                </el-select>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="Reference">
-                <el-input
-                  v-model="form.reference"
-                  placeholder="e.g., KDIGO 2024 Guidelines"
-                />
-              </el-form-item>
-            </el-col>
-          </el-row>
-
-          <el-form-item label="Description">
-            <el-input
-              v-model="form.description"
-              type="textarea"
-              :rows="2"
-              placeholder="Additional description or notes about this indicator"
             />
           </el-form-item>
         </el-card>
@@ -259,9 +197,149 @@ function handleCancel() {
   font-weight: 600;
 }
 
-.advanced-toggle {
+.region-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--claude-orange);
+}
+
+/* ── Creating animation ── */
+.creating-card {
+  margin-top: 24px;
+}
+
+.creating-spinner {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 24px auto 20px;
+}
+
+.creating-ring {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border: 4px solid var(--claude-border);
+  border-top-color: var(--claude-orange);
+  border-radius: 50%;
+  animation: creating-spin 1s linear infinite;
+}
+
+@keyframes creating-spin {
+  to { transform: rotate(360deg); }
+}
+
+.creating-icon {
+  color: var(--claude-orange);
+}
+
+.creating-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--claude-text-dark);
   text-align: center;
-  margin-bottom: 16px;
+  margin: 0 0 6px 0;
+}
+
+.creating-subtitle {
+  font-size: 14px;
+  color: var(--claude-text-light);
+  text-align: center;
+  margin: 0 0 32px 0;
+}
+
+.creating-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 520px;
+  margin: 0 auto;
+  padding-bottom: 32px;
+}
+
+.creation-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.creation-step-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.creation-step.done .creation-step-icon {
+  color: #C9944A;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.creation-step-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--claude-orange);
+  animation: creation-pulse 1s ease-in-out infinite;
+}
+
+.creation-step-circle {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--claude-border);
+}
+
+.creation-step-label-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.creation-step-label {
+  font-size: 15px;
+  color: var(--claude-text-mid);
+  font-weight: 600;
+}
+
+.creation-step-desc {
+  font-size: 12px;
+  color: var(--claude-text-light);
+  line-height: 1.4;
+}
+
+.creation-step.done .creation-step-label {
+  color: #C9944A;
+}
+
+.creation-step.done .creation-step-desc {
+  color: #C9944A;
+  opacity: 0.75;
+}
+
+.creation-step.current .creation-step-label {
+  color: var(--claude-text-dark);
+}
+
+.creation-step.current .creation-step-desc {
+  color: var(--claude-text-mid);
+}
+
+@keyframes creation-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.4); opacity: 1; }
 }
 
 .form-actions {

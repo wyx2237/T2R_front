@@ -2,11 +2,13 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getMetricById, deleteMetric } from '@/api/metrics'
+import { getTools } from '@/api/tools'
 import type { Metric, StepInput } from '@/types/metric'
+import type { AtomicTool } from '@/types/tool'
 import CodeBlock from '@/components/shared/CodeBlock.vue'
-import PipelineViewer from '@/components/metrics/PipelineViewer.vue'
 import { useClipboard } from '@/composables/useClipboard'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { InfoFilled, SetUp, Collection } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -15,6 +17,28 @@ const { copy } = useClipboard()
 const metric = ref<Metric | null>(null)
 const loading = ref(false)
 const expandedSteps = ref<Set<string>>(new Set())
+const tools = ref<AtomicTool[]>([])
+const toolDrawerVisible = ref(false)
+const selectedTool = ref<AtomicTool | null>(null)
+
+function categoryToToolName(category: string): string {
+  return category.split('_').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join('')
+}
+
+function formatCategory(category: string): string {
+  return category.split('_').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')
+}
+
+function openToolDrawer(category: string) {
+  const toolName = categoryToToolName(category)
+  const tool = tools.value.find((t) => t.MetaInfo.Name === toolName)
+  if (tool) {
+    selectedTool.value = tool
+    toolDrawerVisible.value = true
+  } else {
+    ElMessage.warning(`No tool template found for: ${formatCategory(category)}`)
+  }
+}
 
 const stepsDefaultExpanded = computed(() => {
   return metric.value && metric.value.steps.length === 1
@@ -39,8 +63,19 @@ function toggleStep(stepId: string) {
 function sourceLabel(si: StepInput): string {
   const src = si.input_source
   if (src.startsWith('$|inputs|')) return 'Raw Text'
-  const stepMatch = src.match(/\$|steps|\.(\d+)\./)
-  if (stepMatch && metric.value) {
+
+  // Match $|<number>| (e.g. "$|2|.a" → step 2)
+  const pipeMatch = src.match(/\$\|(\d+)\|/)
+  if (pipeMatch && metric.value) {
+    const stepNum = pipeMatch[1]
+    const step = metric.value.steps.find((s) => s.step_id === stepNum)
+    if (step) return `Step ${stepNum} — ${step.step_name}`
+    return `Step ${stepNum}`
+  }
+
+  // Fallback: match $|steps|.<number>. format
+  const stepMatch = src.match(/\$\(?:steps\)?|\.(\d+)\./)
+  if (stepMatch && stepMatch[1] && metric.value) {
     const stepNum = stepMatch[1]
     const step = metric.value.steps.find((s) => s.step_id === stepNum)
     if (step) return `Step ${stepNum} — ${step.step_name}`
@@ -56,7 +91,7 @@ async function fetchData() {
     metric.value = await getMetricById(id)
     initExpanded()
   } catch {
-    ElMessage.error('Failed to load metric')
+    ElMessage.error('Failed to load indicator')
   } finally {
     loading.value = false
   }
@@ -71,14 +106,24 @@ async function handleDelete() {
       { type: 'warning' }
     )
     await deleteMetric(metric.value.id)
-    ElMessage.success('Metric deleted')
+    ElMessage.success('Indicator deleted')
     router.push('/metrics')
   } catch {
     // cancelled
   }
 }
 
-onMounted(fetchData)
+async function loadTools() {
+  try {
+    tools.value = await getTools()
+  } catch {
+    // tools are non-critical for this view
+  }
+}
+
+onMounted(async () => {
+  await Promise.all([fetchData(), loadTools()])
+})
 </script>
 
 <template>
@@ -137,18 +182,15 @@ onMounted(fetchData)
       <el-card class="section-card">
         <template #header><span class="section-title">Step Sequence</span></template>
 
-        <!-- Pipeline overview -->
-        <PipelineViewer :steps="metric.steps" />
-
-        <!-- Step detail cards -->
+        <!-- Step detail cards with interleaved arrows -->
         <div class="step-cards">
-          <div
-            v-for="step in metric.steps"
-            :key="step.step_id"
-            class="step-card"
-            :class="{ expanded: expandedSteps.has(step.step_id) }"
-            @click="toggleStep(step.step_id)"
-          >
+          <template v-for="(step, idx) in metric.steps" :key="step.step_id">
+            <div class="step-arrow" v-if="idx > 0">▼</div>
+            <div
+              class="step-card"
+              :class="{ expanded: expandedSteps.has(step.step_id) }"
+              @click="toggleStep(step.step_id)"
+            >
             <div class="step-card-header">
               <div class="step-header-left">
                 <span class="step-badge">{{ step.step_id }}</span>
@@ -164,6 +206,11 @@ onMounted(fetchData)
 
             <!-- Expanded detail -->
             <div v-if="expandedSteps.has(step.step_id)" class="step-detail" @click.stop>
+              <div class="step-category-row" @click="openToolDrawer(step.category)">
+                <span class="category-label">Category:</span>
+                <span class="category-value">{{ formatCategory(step.category) }}</span>
+                <el-icon class="category-icon"><ArrowRight /></el-icon>
+              </div>
               <div class="step-reason">
                 <strong>Why:</strong> {{ step.reason }}
               </div>
@@ -216,6 +263,7 @@ onMounted(fetchData)
               </div>
             </div>
           </div>
+          </template>
         </div>
       </el-card>
 
@@ -229,6 +277,117 @@ onMounted(fetchData)
         </template>
         <CodeBlock :code="metric.executableCode" lang="python" />
       </el-card>
+
+      <!-- Tool Template Drawer -->
+      <el-drawer
+        v-model="toolDrawerVisible"
+        size="520px"
+        class="tool-detail-drawer"
+      >
+        <template v-if="selectedTool">
+          <div class="tool-drawer-body">
+            <!-- Header -->
+            <div class="drawer-header">
+              <h3 class="drawer-tool-name">{{ selectedTool.MetaInfo.Name }}</h3>
+              <p class="drawer-tool-desc">{{ selectedTool.MetaInfo.Description }}</p>
+            </div>
+
+            <!-- Scope -->
+            <div class="drawer-meta-row">
+              <span class="drawer-meta-tag">Scope</span>
+              <span class="drawer-meta-text">{{ selectedTool.MetaInfo.Scope }}</span>
+            </div>
+
+            <!-- Language + Libraries -->
+            <div class="drawer-meta-row drawer-meta-row-split">
+              <div class="drawer-meta-half">
+                <span class="drawer-meta-tag">Language</span>
+                <el-tag size="small" type="info" effect="plain">{{ selectedTool.ExecInfo.Language }}</el-tag>
+              </div>
+              <div class="drawer-meta-half">
+                <span class="drawer-meta-tag">Libraries</span>
+                <template v-if="selectedTool.ExecInfo.Library.length > 0">
+                  <el-tag
+                    v-for="lib in selectedTool.ExecInfo.Library"
+                    :key="lib"
+                    size="small"
+                    type="info"
+                    effect="plain"
+                    style="margin-right: 4px"
+                  >
+                    {{ lib }}
+                  </el-tag>
+                </template>
+                <span v-else class="drawer-no-libs">—</span>
+              </div>
+            </div>
+
+            <!-- FlowInfo -->
+            <el-divider />
+            <div class="drawer-section">
+              <div class="drawer-section-badge badge-flow">
+                <el-icon><InfoFilled /></el-icon>
+                <span>FlowInfo</span>
+              </div>
+              <div class="drawer-flow-grid">
+                <div class="drawer-flow-item">
+                  <h5>Input</h5>
+                  <p>{{ selectedTool.FlowInfo.Input.Description }}</p>
+                  <CodeBlock :code="selectedTool.FlowInfo.Input.Example" lang="json" />
+                </div>
+                <div class="drawer-flow-item">
+                  <h5>Output</h5>
+                  <p>{{ selectedTool.FlowInfo.Output.Description }}</p>
+                  <CodeBlock :code="selectedTool.FlowInfo.Output.Example" lang="json" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Execution Logic -->
+            <el-divider />
+            <div class="drawer-section">
+              <div class="drawer-section-badge badge-exec">
+                <el-icon><SetUp /></el-icon>
+                <span>Execution Logic</span>
+              </div>
+              <ol class="drawer-logic-steps">
+                <li v-for="(step, i) in selectedTool.ExecInfo.Logic" :key="i">
+                  {{ step }}
+                </li>
+              </ol>
+            </div>
+
+            <!-- Examples -->
+            <el-divider />
+            <div class="drawer-section">
+              <div class="drawer-section-badge badge-examples">
+                <el-icon><Collection /></el-icon>
+                <span>Examples ({{ selectedTool.Examples.length }})</span>
+              </div>
+              <div
+                v-for="(ex, i) in selectedTool.Examples"
+                :key="i"
+                class="drawer-example-item"
+              >
+                <h5 class="drawer-example-name">{{ ex.ToolName }}</h5>
+                <div class="drawer-example-inline">
+                  <span class="drawer-example-label">Parameters</span>
+                  <code class="drawer-inline-params">{{ JSON.stringify(ex.Parameters) }}</code>
+                </div>
+                <div class="drawer-example-inline">
+                  <span class="drawer-example-label">Output</span>
+                  <code class="drawer-inline-params">{{ JSON.stringify(ex.Output) }}</code>
+                </div>
+                <div class="drawer-example-block">
+                  <span class="drawer-example-label">Code</span>
+                  <CodeBlock :code="ex.Code" lang="python" />
+                </div>
+                <el-divider v-if="i < selectedTool.Examples.length - 1" />
+              </div>
+            </div>
+          </div>
+        </template>
+      </el-drawer>
     </template>
   </div>
 </template>
@@ -295,8 +454,18 @@ onMounted(fetchData)
 .step-cards {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
   margin-top: 24px;
+}
+
+.step-arrow {
+  text-align: center;
+  font-size: 16px;
+  color: #D97757;
+  font-weight: 800;
+  padding: 8px 0;
+  letter-spacing: 2px;
+  user-select: none;
 }
 
 .step-card {
@@ -444,5 +613,210 @@ onMounted(fetchData)
 
 .io-desc {
   color: var(--claude-text-light);
+}
+
+.step-category-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--claude-warm-bg);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.step-category-row:hover {
+  background: #f0ebe5;
+}
+
+.category-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--claude-text-dark);
+}
+
+.category-value {
+  font-size: 13px;
+  color: #D97757;
+  font-weight: 500;
+}
+
+.category-icon {
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--claude-text-light);
+}
+
+/* ── Tool Template Drawer (matches ToolLibrary.vue card style) ── */
+.tool-detail-drawer :deep(.el-drawer__body) {
+  padding: 20px 24px;
+}
+
+.tool-drawer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.drawer-header {
+  margin-bottom: 14px;
+}
+
+.drawer-tool-name {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--claude-text-dark);
+  margin: 0 0 10px 0;
+}
+
+.drawer-tool-desc {
+  font-size: 14px;
+  color: var(--claude-text-mid);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.drawer-meta-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.drawer-meta-row-split {
+  gap: 32px;
+}
+
+.drawer-meta-half {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.drawer-meta-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--claude-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  background: var(--claude-warm-bg);
+  padding: 2px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.drawer-meta-text {
+  font-size: 13px;
+  color: var(--claude-text-mid);
+  line-height: 1.6;
+}
+
+.drawer-no-libs {
+  color: var(--claude-text-light);
+  font-size: 13px;
+}
+
+.drawer-section {
+  margin-bottom: 4px;
+}
+
+.drawer-section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 6px;
+  margin: 0 0 14px 0;
+}
+
+.badge-flow {
+  background: var(--el-color-primary-light-9);
+  color: #D97757;
+}
+
+.badge-exec {
+  background: #F0F9EB;
+  color: #67C23A;
+}
+
+.badge-examples {
+  background: #F4F0FE;
+  color: #9065E6;
+}
+
+.drawer-section h5 {
+  font-size: 14px;
+  color: var(--claude-text-dark);
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
+.drawer-flow-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.drawer-flow-item p {
+  font-size: 13px;
+  color: #6B7280;
+  line-height: 1.6;
+  margin: 0 0 10px 0;
+}
+
+.drawer-logic-steps {
+  margin: 0;
+  padding-left: 22px;
+  font-size: 13px;
+  color: var(--claude-text-mid);
+  line-height: 2;
+}
+
+.drawer-logic-steps li {
+  padding-left: 2px;
+}
+
+.drawer-example-item {
+  margin-bottom: 8px;
+}
+
+.drawer-example-name {
+  font-size: 14px;
+  color: var(--claude-text-dark);
+  margin: 0 0 14px 0;
+  font-weight: 600;
+}
+
+.drawer-example-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.drawer-inline-params {
+  font-size: 13px;
+  color: var(--claude-text-mid);
+  background: #F8F9FA;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.drawer-example-block {
+  margin-bottom: 14px;
+}
+
+.drawer-example-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #969BA3;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 </style>

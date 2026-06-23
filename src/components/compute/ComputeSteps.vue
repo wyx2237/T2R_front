@@ -5,7 +5,7 @@ defineProps<{
 
 const steps = [
   { title: 'Upload Case', icon: 'Upload' },
-  { title: 'Select Metrics', icon: 'Search' },
+  { title: 'Select Indicators', icon: 'Search' },
   { title: 'Results', icon: 'Document' },
 ]
 </script>

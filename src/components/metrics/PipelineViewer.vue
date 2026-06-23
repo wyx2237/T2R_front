@@ -1,111 +1,47 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { computed } from 'vue'
 import type { WorkflowStep } from '@/types/metric'
 
 const props = defineProps<{
   steps: WorkflowStep[]
 }>()
 
-const pipelineRef = ref<HTMLDivElement | null>(null)
-const nodeRefs = ref<(HTMLDivElement | null)[]>([])
-const svgWidth = ref(0)
-const svgHeight = ref(100)
-const lines = ref<{ x1: number; y1: number; x2: number; y2: number }[]>([])
+const COLS = 5
 
-function recalculateLines() {
-  if (!pipelineRef.value || props.steps.length < 2) {
-    lines.value = []
-    return
-  }
-
-  const containerRect = pipelineRef.value.getBoundingClientRect()
-  const newLines: { x1: number; y1: number; x2: number; y2: number }[] = []
-
-  for (let i = 0; i < props.steps.length - 1; i++) {
-    const currentNode = nodeRefs.value[i]
-    const nextNode = nodeRefs.value[i + 1]
-    if (!currentNode || !nextNode) continue
-
-    const currentRect = currentNode.getBoundingClientRect()
-    const nextRect = nextNode.getBoundingClientRect()
-
-    newLines.push({
-      x1: currentRect.right - containerRect.left,
-      y1: currentRect.top + currentRect.height / 2 - containerRect.top,
-      x2: nextRect.left - containerRect.left,
-      y2: nextRect.top + nextRect.height / 2 - containerRect.top,
+const rows = computed(() => {
+  const result: { items: WorkflowStep[]; isReversed: boolean }[] = []
+  for (let i = 0; i < props.steps.length; i += COLS) {
+    const chunk = props.steps.slice(i, i + COLS)
+    const isReversed = result.length % 2 === 1
+    result.push({
+      items: isReversed ? [...chunk].reverse() : chunk,
+      isReversed,
     })
   }
-
-  lines.value = newLines
-}
-
-const isVertical = ref(false)
-
-function checkLayout() {
-  isVertical.value = props.steps.length > 5
-  svgWidth.value = pipelineRef.value?.clientWidth || 800
-  nextTick(recalculateLines)
-}
-
-let resizeObserver: ResizeObserver | null = null
-
-onMounted(() => {
-  checkLayout()
-  resizeObserver = new ResizeObserver(() => checkLayout())
-  if (pipelineRef.value) {
-    resizeObserver.observe(pipelineRef.value)
-  }
+  return result
 })
-
-onUnmounted(() => {
-  resizeObserver?.disconnect()
-})
-
-watch(() => props.steps, () => nextTick(checkLayout))
 </script>
 
 <template>
-  <div
-    ref="pipelineRef"
-    class="pipeline"
-    :class="{ 'pipeline-vertical': isVertical }"
-  >
-    <svg
-      v-if="lines.length > 0"
-      class="pipeline-svg"
-      :width="svgWidth"
-      :height="svgHeight"
+  <div class="pipeline">
+    <div
+      v-for="(row, ri) in rows"
+      :key="ri"
+      class="pipeline-row"
+      :class="{ 'row-reversed': row.isReversed }"
     >
-      <line
-        v-for="(line, i) in lines"
-        :key="i"
-        :x1="line.x1"
-        :y1="line.y1"
-        :x2="line.x2"
-        :y2="line.y2"
-        stroke="#D9D9D9"
-        stroke-width="2"
-      />
-      <polygon
-        v-for="(line, i) in lines"
-        :key="'arrow-' + i"
-        :points="`${line.x2 - 6},${line.y2 - 4} ${line.x2},${line.y2} ${line.x2 - 6},${line.y2 + 4}`"
-        fill="#D9D9D9"
-      />
-    </svg>
-    <div class="pipeline-nodes">
-      <div
-        v-for="(step, i) in steps"
-        :key="step.step_id"
-        :ref="(el) => { nodeRefs[i] = el as HTMLDivElement | null }"
-        class="step-node"
-      >
-        <div class="step-circle">{{ step.step_id }}</div>
-        <div class="step-info">
-          <span class="step-name">{{ step.step_name }}</span>
-          <span class="step-desc">{{ step.step_description }}</span>
-        </div>
+      <div class="row-body">
+        <template v-for="(step, si) in row.items" :key="step.step_id">
+          <div class="step-node">
+            <div class="step-circle">{{ step.step_id }}</div>
+            <div class="step-name" :title="step.step_name">{{ step.step_name }}</div>
+          </div>
+          <div v-if="si < row.items.length - 1" class="h-arrow">&gt;&gt;&gt;</div>
+        </template>
+      </div>
+      <div v-if="ri < rows.length - 1" class="v-turn">
+        <div class="v-line" />
+        <div class="v-arrow">&#9660;</div>
       </div>
     </div>
   </div>
@@ -113,37 +49,34 @@ watch(() => props.steps, () => nextTick(checkLayout))
 
 <style scoped>
 .pipeline {
-  position: relative;
-  padding: 24px 0;
-}
-
-.pipeline-svg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-}
-
-.pipeline-nodes {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-around;
-  gap: 16px;
-}
-
-.pipeline-vertical .pipeline-nodes {
   flex-direction: column;
   align-items: center;
+  gap: 0;
+  padding: 20px 0 8px;
 }
 
+.pipeline-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.row-body {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+/* ── Step Node ── */
 .step-node {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  min-width: 140px;
-  position: relative;
-  z-index: 1;
+  gap: 6px;
+  width: 140px;
+  flex-shrink: 0;
 }
 
 .step-circle {
@@ -160,24 +93,56 @@ watch(() => props.steps, () => nextTick(checkLayout))
   flex-shrink: 0;
 }
 
-.step-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
 .step-name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: #303133;
   text-align: center;
+  white-space: nowrap;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.step-desc {
-  color: #909399;
-  font-size: 12px;
+/* ── Horizontal Arrow ── */
+.h-arrow {
+  font-size: 16px;
+  color: #D97757;
+  font-weight: 800;
+  flex-shrink: 0;
+  width: 40px;
   text-align: center;
-  max-width: 160px;
+  user-select: none;
+  letter-spacing: 1px;
+}
+
+/* Reversed row: arrows point left */
+.row-reversed .h-arrow {
+  transform: scaleX(-1);
+}
+
+/* ── Vertical Turn Connector ── */
+.v-turn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-self: flex-end; /* normal L→R rows: turn at right edge */
+  margin: 2px 0;
+}
+
+.row-reversed .v-turn {
+  align-self: flex-start; /* reversed R→L rows: turn at left edge */
+}
+
+.v-line {
+  width: 2px;
+  height: 20px;
+  background: #C0C4CC;
+}
+
+.v-arrow {
+  font-size: 10px;
+  color: #C0C4CC;
+  line-height: 1;
 }
 </style>
