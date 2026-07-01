@@ -15,8 +15,17 @@
 
   /* ── Fonts ── */
   --font-display: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
 
-  /* ── Layout Dimensions ── */
+@font-face {
+  font-family: 'Carter One';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/CarterOne.ttf') format('truetype');
+}
+
+:root {
   --sidebar-bg: var(--claude-sidebar-bg);
   --sidebar-width: 220px;
   --sidebar-collapsed-width: 64px;

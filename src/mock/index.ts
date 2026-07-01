@@ -7,7 +7,7 @@ import { uploadResponse, computeResponse } from './sessions'
 const mock = new MockAdapter(axios, { delayResponse: 300 })
 
 // 包装为后端统一的 ResponseModel 格式 { message, data, status_code }
-function ok(data: unknown) {
+function ok(data: unknown): [number, { message: string; data: unknown; status_code: number }] {
   return [200, { message: 'ok', data, status_code: 200 }]
 }
 

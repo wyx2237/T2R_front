@@ -38,10 +38,11 @@ export const computeResponse: { results: MetricComputeResult[] } = {
           category: 'preprocessing',
           step_name: 'Unit Conversion',
           step_description: 'Convert serum creatinine units if needed',
+          step_detail: 'Convert 1.2 mg/dL to mg/dL — no conversion needed',
           inputs: [
             { input_name: 'value', input_value: 1.2, input_unit: 'mg/dL', input_source: '$|inputs|.SerumCreatinine' },
-            { input_name: 'fromUnit', input_value: 'mg/dL', input_unit: null, input_source: '$|inputs|.fromUnit' },
-            { input_name: 'toUnit', input_value: 'mg/dL', input_unit: null, input_source: '$|inputs|.toUnit' },
+            { input_name: 'fromUnit', input_value: 'mg/dL', input_source: '$|inputs|.fromUnit' },
+            { input_name: 'toUnit', input_value: 'mg/dL', input_source: '$|inputs|.toUnit' },
           ],
           outputs: [
             { output_name: 'convertedValue', output_value: 1.2, output_unit: 'mg/dL' },
@@ -53,10 +54,11 @@ export const computeResponse: { results: MetricComputeResult[] } = {
           category: 'computation',
           step_name: 'CKD-EPI Formula',
           step_description: 'Compute eGFR with CKD-EPI formula',
+          step_detail: 'eGFR = 141 × min(Scr/κ,1)^α × max(Scr/κ,1)^(-1.209) × 0.993^Age × 1.018 [if female]',
           inputs: [
             { input_name: 'Scr', input_value: 1.2, input_unit: 'mg/dL', input_source: '$|inputs|.SerumCreatinine' },
             { input_name: 'Age', input_value: 58, input_unit: 'years', input_source: '$|inputs|.Age' },
-            { input_name: 'Sex', input_value: 'M', input_unit: null, input_source: '$|inputs|.Sex' },
+            { input_name: 'Sex', input_value: 'M', input_source: '$|inputs|.Sex' },
           ],
           outputs: [
             { output_name: 'eGFR', output_value: 72.4, output_unit: 'mL/min/1.73m²' },
@@ -68,12 +70,13 @@ export const computeResponse: { results: MetricComputeResult[] } = {
           category: 'classification',
           step_name: 'CKD Stage Classification',
           step_description: 'Classify CKD stage based on eGFR value',
+          step_detail: 'eGFR 72.4 → Stage 2 (60-89 mL/min/1.73m²)',
           inputs: [
             { input_name: 'eGFR', input_value: 72.4, input_unit: 'mL/min/1.73m²', input_source: '$|2|.eGFR' },
           ],
           outputs: [
-            { output_name: 'stage', output_value: 'Stage 2', output_unit: null },
-            { output_name: 'description', output_value: 'Mildly decreased kidney function', output_unit: null },
+            { output_name: 'stage', output_value: 'Stage 2' },
+            { output_name: 'description', output_value: 'Mildly decreased kidney function' },
           ],
           status: 'success',
         },
