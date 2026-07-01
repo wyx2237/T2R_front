@@ -82,4 +82,11 @@ const router = createRouter({
   routes,
 })
 
+router.beforeEach((to, from) => {
+  if (from.path.startsWith('/compute') && !to.path.startsWith('/compute')) {
+    const store = useComputeStore()
+    store.$reset()
+  }
+})
+
 export default router

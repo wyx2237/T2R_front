@@ -68,6 +68,19 @@ function handleReset() {
   router.push('/compute/upload')
 }
 
+async function handleReCompute() {
+  computing.value = true
+  computeError.value = ''
+  computeStore.results = []
+  try {
+    await computeStore.executeCompute()
+  } catch {
+    computeError.value = 'Computation failed. Please try again.'
+  } finally {
+    computing.value = false
+  }
+}
+
 async function handleExport() {
   if (!computeStore.sessionId) return
   try {
@@ -231,6 +244,10 @@ onMounted(async () => {
         <el-button @click="handleReSelect">
           <el-icon><RefreshLeft /></el-icon>
           Re-select Indicator
+        </el-button>
+        <el-button @click="handleReCompute" :disabled="computing">
+          <el-icon><Refresh /></el-icon>
+          Re-compute
         </el-button>
         <el-button @click="handleCopySummary">
           <el-icon><CopyDocument /></el-icon>

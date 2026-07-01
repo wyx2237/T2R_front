@@ -28,6 +28,7 @@ export interface StepTrace {
   category: string
   step_name: string
   step_description: string
+  step_detail: string
   inputs: StepTraceInput[]
   outputs: StepTraceOutput[]
   status: 'success' | 'error'

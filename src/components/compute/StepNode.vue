@@ -46,6 +46,7 @@ function formatSource(source: string): string {
           v-else-if="trace.status === 'error'"
           class="step-status-badge status-fail"
         />
+        <span class="expand-label">{{ expanded ? 'Collapse' : 'Expand' }}</span>
         <el-icon class="expand-icon" :class="{ expanded }">
           <ArrowDown />
         </el-icon>
@@ -71,6 +72,12 @@ function formatSource(source: string): string {
       <div class="step-section">
         <div class="section-label">Description</div>
         <p class="desc-text">{{ trace.step_description }}</p>
+      </div>
+
+      <!-- Logic (step_detail) -->
+      <div class="step-section">
+        <div class="section-label">LOGIC</div>
+        <p class="logic-text">{{ trace.step_detail }}</p>
       </div>
 
       <!-- Inputs -->
@@ -184,10 +191,18 @@ function formatSource(source: string): string {
 
 .expand-icon {
   transition: transform 0.2s;
+  font-size: 14px;
 }
 
 .expand-icon.expanded {
   transform: rotate(180deg);
+}
+
+.expand-label {
+  font-size: 12px;
+  color: #909399;
+  font-weight: 500;
+  user-select: none;
 }
 
 .step-body {
@@ -215,6 +230,18 @@ function formatSource(source: string): string {
   color: #606266;
   margin: 0;
   line-height: 1.6;
+}
+
+.logic-text {
+  font-size: 13px;
+  color: #D97757;
+  margin: 0;
+  line-height: 1.6;
+  background: #FEF6F0;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border-left: 3px solid #D97757;
+  font-weight: 500;
 }
 
 .category-row {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { useUiStore } from '@/stores/ui'
+import AppLogo from '@/components/Logo.vue'
 
 const router = useRouter()
 const uiStore = useUiStore()
@@ -15,8 +16,7 @@ function onFontChange(font: string) {
 <template>
   <header class="app-header">
     <div class="header-left" @click="router.push('/')">
-      <span class="logo-circle">⚕</span>
-      <span class="title">Clinical Quantitative Platform</span>
+      <AppLogo />
     </div>
     <div class="header-right">
       <el-popover
@@ -56,8 +56,6 @@ function onFontChange(font: string) {
           </div>
         </div>
       </el-popover>
-
-      <el-avatar :size="32" icon="UserFilled" class="avatar" />
     </div>
   </header>
 </template>
@@ -82,29 +80,8 @@ function onFontChange(font: string) {
 .header-left {
   display: flex;
   align-items: center;
-  gap: 12px;
   cursor: pointer;
-}
-
-.logo-circle {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--claude-sidebar-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26px;
-  color: #fff;
-  flex-shrink: 0;
-  font-weight: 500;
-}
-
-.title {
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--claude-orange);
+  height: 100%;
 }
 
 .header-right {
@@ -121,10 +98,6 @@ function onFontChange(font: string) {
 
 .settings-btn:hover {
   color: var(--claude-orange);
-}
-
-.avatar {
-  cursor: pointer;
 }
 </style>
 

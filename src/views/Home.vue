@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import AppLogo from '@/components/Logo.vue'
 
 const router = useRouter()
 
@@ -16,22 +17,22 @@ const modules = [
   {
     icon: 'DataAnalysis',
     title: 'Indicators',
-    subtitle: '指标管理',
-    desc: '管理计算指标定义、参数配置和计算流水线，支持 Pipeline 可视化展示。',
+    subtitle: 'Indicator Management',
+    desc: 'Manage indicator definitions, parameter configurations, and computation pipelines with visual Pipeline display.',
     route: '/metrics',
   },
   {
     icon: 'Operation',
     title: 'Compute',
-    subtitle: '定量计算',
-    desc: '上传病例 → 选择指标 → 一键执行计算，参数抽取透明，步骤逐级可追溯。',
+    subtitle: 'Quantitative Computation',
+    desc: 'Upload case → Select indicator → One-click compute. Transparent parameter extraction with traceable steps.',
     route: '/compute/upload',
   },
   {
     icon: 'SetUp',
-    title: 'Tools',
-    subtitle: '工具模板库',
-    desc: '8 个内置原子计算工具，只读展示，作为 LLM 拆解计算步骤时的可解释锚点。',
+    title: 'Templates',
+    subtitle: 'Tool Template Library',
+    desc: '8 built-in atomic computation tools, read-only display, serving as interpretable anchors for LLM computation decomposition.',
     route: '/tools',
   },
 ]
@@ -41,17 +42,20 @@ const modules = [
   <div class="home-page">
     <!-- Hero -->
     <section class="hero">
-      <h1 class="hero-title">Clinical Quantitative Platform</h1>
-      <p class="hero-subtitle">医疗定量计算平台</p>
-      <p class="hero-desc">面向临床场景的参数抽取与定量计算系统</p>
+      <div class="hero-bg-decoration" />
+      <AppLogo large />
+      <p class="hero-subtitle">Structured Rule Generation &amp; Execution System</p>
+      <div class="hero-divider" />
+      <p class="hero-desc">Supporting Clinical Medical Computation</p>
+      <p class="hero-desc-secondary">This system is designed for clinicians and physicians. It helps doctors define, validate, and execute clinical rules in a transparent and auditable way, supporting evidence-based medical computation in daily practice.</p>
       <div class="hero-actions">
         <el-button type="primary" size="large" round @click="goCompute">
           <el-icon><Operation /></el-icon>
-          进入计算执行
+          Start Calculation
         </el-button>
         <el-button size="large" round @click="goDoc">
           <el-icon><Document /></el-icon>
-          详细文档
+          Documentation
         </el-button>
       </div>
     </section>
@@ -79,7 +83,7 @@ const modules = [
             <p class="module-desc">{{ mod.desc }}</p>
             <div class="module-action">
               <el-button text type="primary">
-                进入 &rarr;
+                Enter &rarr;
               </el-button>
             </div>
           </el-card>
@@ -97,34 +101,91 @@ const modules = [
 
 /* ── Hero ── */
 .hero {
+  position: relative;
   text-align: center;
-  padding: 60px 20px 48px;
+  padding: 72px 20px 56px;
+  margin: 0 0 20px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #FEF8F2 0%, #F5EDE4 50%, #EFE6DA 100%);
+  overflow: hidden;
+}
+
+.hero-bg-decoration {
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(217, 119, 87, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-bg-decoration::before {
+  content: '';
+  position: absolute;
+  bottom: -100px;
+  left: -80px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(217, 119, 87, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero :deep(.app-logo) {
+  margin-bottom: 16px;
 }
 
 .hero-title {
   font-family: var(--font-display);
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--claude-text-dark);
+  font-size: 44px;
+  font-weight: 800;
+  color: #3C2A1E;
   margin: 0 0 8px;
+  letter-spacing: 6px;
+  text-transform: uppercase;
 }
 
 .hero-subtitle {
-  font-size: 16px;
-  color: var(--claude-text-mid);
-  margin: 0 0 12px;
+  font-size: 36px;
+  font-weight: 500;
+  color: #6B5744;
+  margin: 0 0 20px;
+  letter-spacing: 0.5px;
+  font-family: 'Carter One', cursive;
+}
+
+.hero-divider {
+  width: 48px;
+  height: 3px;
+  background: linear-gradient(90deg, #D97757, #E8A87C);
+  border-radius: 2px;
+  margin: 0 auto 20px;
 }
 
 .hero-desc {
+  font-size: 15px;
+  font-weight: 600;
+  color: #8B7355;
+  margin: 0 0 16px;
+  letter-spacing: 0.3px;
+}
+
+.hero-desc-secondary {
   font-size: 14px;
-  color: var(--claude-text-light);
-  margin: 0 0 32px;
+  color: #7A6A5A;
+  margin: 0 auto 36px;
+  line-height: 1.8;
+  max-width: 560px;
 }
 
 .hero-actions {
   display: flex;
   gap: 16px;
   justify-content: center;
+  position: relative;
+  z-index: 1;
 }
 
 /* ── Module Cards ── */

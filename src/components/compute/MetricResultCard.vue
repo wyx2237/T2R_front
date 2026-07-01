@@ -33,7 +33,7 @@ const statusTagType = computed(() => {
         v-if="result.status && result.statusLabel"
         :type="statusTagType"
         size="small"
-        effect="plain"
+        effect="dark"
       >
         {{ result.statusLabel }}
       </el-tag>

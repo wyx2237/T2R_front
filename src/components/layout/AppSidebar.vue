@@ -46,7 +46,7 @@ function navigate(path: string) {
       </el-menu-item>
       <el-menu-item index="/tools">
         <el-icon><SetUp /></el-icon>
-        <template #title>Tools</template>
+        <template #title>Templates</template>
       </el-menu-item>
     </el-menu>
     <div class="collapse-btn" @click="uiStore.toggleSidebar()">
