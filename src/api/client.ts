@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const isMock = import.meta.env.VITE_USE_MOCK === 'true'
-const baseURL = isMock ? '' : (import.meta.env.VITE_API_BASE_URL || '')
+const baseURL = isMock ? '' : (window.__T2R_CONFIG__?.apiBaseUrl || '')
 
 const client = axios.create({ baseURL })
 

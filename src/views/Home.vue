@@ -23,7 +23,7 @@ const modules = [
   },
   {
     icon: 'Operation',
-    title: 'Compute',
+    title: 'Calculation',
     subtitle: 'Quantitative Computation',
     desc: 'Upload case → Select indicator → One-click compute. Transparent parameter extraction with traceable steps.',
     route: '/compute/upload',
