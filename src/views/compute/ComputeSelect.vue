@@ -14,40 +14,15 @@ const computeStore = useComputeStore()
 const stepIndex = ref(1)
 
 const allMetrics = ref<Metric[]>([])
-const searchKeyword = ref('')
-const departmentFilter = ref('')
-
-const departments = computed(() => {
-  const depts = new Set(computeStore.availableMetrics.map((m) => m.department))
-  return [...depts]
-})
-
-const allDepartments = computed(() => {
-  const depts = new Set(allMetrics.value.map((m) => m.department))
-  return [...depts]
-})
 
 const recommendedMetrics = computed(() => {
-  let list = [...computeStore.availableMetrics]
-
-  if (searchKeyword.value) {
-    const kw = searchKeyword.value.toLowerCase()
-    list = list.filter(
-      (m) => m.name.toLowerCase().includes(kw) || m.code.toLowerCase().includes(kw)
-    )
-  }
-
-  if (departmentFilter.value) {
-    list = list.filter((m) => m.department === departmentFilter.value)
-  }
-
+  const list = [...computeStore.availableMetrics]
   // Sort by department then name
   list.sort((a, b) => {
     const dept = a.department.localeCompare(b.department)
     if (dept !== 0) return dept
     return a.name.localeCompare(b.name)
   })
-
   // Limit to top 5
   return list.slice(0, 5)
 })
@@ -66,8 +41,6 @@ function selectMetric(metricId: string) {
 }
 
 function selectMetricFromTree(metricId: string) {
-  searchKeyword.value = ''
-  departmentFilter.value = ''
   computeStore.selectedMetricId = metricId
 }
 
@@ -127,29 +100,6 @@ if (!computeStore.sessionId) {
         </div>
       </template>
 
-      <div class="filter-bar">
-        <div class="filter-search">
-          <el-input
-            v-model="searchKeyword"
-            placeholder="Search name/code..."
-            clearable
-          />
-        </div>
-        <el-select
-          v-model="departmentFilter"
-          placeholder="All Departments"
-          clearable
-          style="width: 180px"
-        >
-          <el-option
-            v-for="dept in departments"
-            :key="dept"
-            :label="dept"
-            :value="dept"
-          />
-        </el-select>
-      </div>
-
       <el-row :gutter="16">
         <el-col
           v-for="metric in recommendedMetrics"
@@ -184,14 +134,14 @@ if (!computeStore.sessionId) {
         </div>
       </template>
       <el-tree
-        :data="allDepartments.map((dept) => ({
+        :data="[...new Set(allMetrics.map((m) => m.department))].map((dept) => ({
           label: dept,
           children: allMetrics
             .filter((m) => m.department === dept)
             .map((m) => ({
               label: `${m.name} (${m.code})`,
               id: m.id,
-            })),
+            }))
         }))"
         node-key="id"
         highlight-current
@@ -281,18 +231,6 @@ if (!computeStore.sessionId) {
   word-break: break-word;
   line-height: 1.6;
   margin: 0;
-}
-
-.filter-bar {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.filter-search {
-  flex: 1;
-  max-width: 320px;
 }
 
 .action-bar {

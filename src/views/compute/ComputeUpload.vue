@@ -89,7 +89,7 @@ function handleReset() {
       <template #header>
         <div class="region-header">
           <el-icon :size="22"><UploadFilled /></el-icon>
-          <span>Upload Case Data</span>
+          <span>Upload EMR Case</span>
         </div>
       </template>
 
