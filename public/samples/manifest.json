@@ -1,0 +1,8 @@
+[
+  { "filename": "patient_1.txt", "label": "AF with CKD" },
+  { "filename": "patient_2.txt", "label": "Cirrhosis with GI Bleed" },
+  { "filename": "patient_3.txt", "label": "Pregnancy with DVT/PE" },
+  { "filename": "patient_4.txt", "label": "RA with CKD" },
+  { "filename": "patient_5.txt", "label": "AF with Stroke & DVT" },
+  { "filename": "patient_6.txt", "label": "Sepsis with Cirrhosis & AKI" }
+]

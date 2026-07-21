@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useComputeStore } from '@/stores/compute'
 import type { UploadFile, UploadRawFile } from 'element-plus'
@@ -22,6 +22,21 @@ const analysisSteps = [
   'Ranking best-fit indicators...',
 ]
 const currentAnalysisStep = ref(-1)
+
+interface SampleFile {
+  filename: string
+  label: string
+}
+const sampleFiles = ref<SampleFile[]>([])
+
+onMounted(async () => {
+  try {
+    const res = await fetch('/samples/manifest.json')
+    sampleFiles.value = await res.json()
+  } catch {
+    console.warn('Failed to load samples manifest')
+  }
+})
 
 function readFileContent(rawFile: File) {
   const reader = new FileReader()
@@ -173,26 +188,21 @@ function handleReset() {
         </div>
       </template>
       <p class="sample-desc">No case on hand? Download samples to try:</p>
-      <div class="sample-links">
-        <a href="/samples/ckd_patient.txt" download class="sample-link">
+      <div v-if="sampleFiles.length" class="sample-links">
+        <a
+          v-for="s in sampleFiles"
+          :key="s.filename"
+          :href="'/samples/' + s.filename"
+          download
+          class="sample-link"
+        >
           <el-button type="primary" text>
             <el-icon><Download /></el-icon>
-            Sample 1: ckd_patient.txt
-          </el-button>
-        </a>
-        <a href="/samples/heart_failure_patient.txt" download class="sample-link">
-          <el-button type="primary" text>
-            <el-icon><Download /></el-icon>
-            Sample 2: heart_failure_patient.txt
-          </el-button>
-        </a>
-        <a href="/samples/diabetes_followup.txt" download class="sample-link">
-          <el-button type="primary" text>
-            <el-icon><Download /></el-icon>
-            Sample 3: diabetes_followup.txt
+            {{ s.label }} ({{ s.filename }})
           </el-button>
         </a>
       </div>
+      <p v-else class="sample-desc">Loading sample files...</p>
     </el-card>
   </div>
 </template>
